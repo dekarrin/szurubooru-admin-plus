@@ -96,32 +96,41 @@ def main() -> None:
         description="Collection of CLI commands for an administrator to use",
         epilog="Look at README.md for more info",
     )
-    parser = parser_top.add_mutually_exclusive_group(required=True)
-    parser.add_argument(
-        "--change-password",
-        metavar="<username>",
-        help="change the password of specified user",
+
+    subparsers = parser_top.add_subparsers(dest="subcommand", help="sub-command help")
+    subparsers.required = True
+
+    change_password_parser = subparsers.add_parser(
+        "change-password",
+        help="change the password of a user",
     )
-    parser.add_argument(
-        "--check-all-audio",
-        action="store_true",
+    change_password_parser.add_argument(
+        "username",
+        metavar="<username>",
+        help="the username or email of the user whose password to change",
+    )
+
+    subparsers.add_parser(
+        "check-all-audio",
         help="check the audio flags of all posts, "
         "noting discrepancies, without modifying posts",
     )
-    parser.add_argument(
-        "--reset-filenames",
-        action="store_true",
+
+
+    subparsers.add_parser(
+        "reset-filenames",
         help="reset and rename the content and thumbnail "
         "filenames in case of a lost/changed secret key",
     )
+
     command = parser_top.parse_args()
 
     try:
-        if command.change_password:
-            reset_password(command.change_password)
-        elif command.check_all_audio:
+        if command.subcommand == "change-password":
+            reset_password(command.username)
+        elif command.subcommand == "check-all-audio":
             check_audio()
-        elif command.reset_filenames:
+        elif command.subcommand == "reset-filenames":
             reset_filenames()
     except errors.BaseError as e:
         print(e, file=stderr)
