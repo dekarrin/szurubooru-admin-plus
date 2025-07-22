@@ -68,6 +68,10 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str) -> None:
             if new_name.lower() != t.first_name.lower():
                 replacements.append((t, new_name))
 
+    if len(replacements) < 1:
+            print("No tags match {old!r}" % old)
+            return
+
     name_list = (
         db.session.query(model.TagName)
         .order_by(model.TagName.name)
@@ -97,10 +101,6 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str) -> None:
 
             simulated_existing.add(new_fname.lower())
             actions.append(('rename', tag, new_fname, tag))
-
-    if len(actions) < 1:
-        print("No tags match {old!r}" % old)
-        return
 
     for act in actions:
         action_type, tag, new_name, target = act
