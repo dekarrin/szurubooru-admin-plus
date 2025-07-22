@@ -135,6 +135,9 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str) -> None:
                         all_new_names.append(n.name)
                 tagfuncs.update_tag_name(tag, new_name)
 
+        else:
+            raise errors.ValidationError("Unknown action type: %s" % action_type)
+
     if not apply:
         print("No changes applied; if above looks correct, re-run with --apply")
     else:
