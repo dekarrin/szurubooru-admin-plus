@@ -38,13 +38,13 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str) -> None:
         tag_list = (
             db.session.query(model.Tag)
             .filter(model.Tag.category == tagcat)
-            .order_by(model.Tag.name)
+            .order_by(model.Tag.first_name)
             .all()
         )
 
         full_tag_list = (
             db.session.query(model.Tag)
-            .order_by(model.Tag.name)
+            .order_by(model.Tag.first_name)
             .all()
         )
     else:
