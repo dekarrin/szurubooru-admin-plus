@@ -16,6 +16,126 @@ from szurubooru import config, db, errors, model
 from szurubooru.func import files, images
 from szurubooru.func import posts as postfuncs
 from szurubooru.func import users as userfuncs
+from szurubooru.func import tag_categories as tagcatfuncs
+from szurubooru.func import tags as tagfuncs
+
+
+def mass_rename_tags(old: str, new: str, apply: bool, category: str) -> None:
+    """
+    Rename all tags matching the old pattern to the new pattern. Uses regular
+    expressions for matching and replacing. Not actually applied unless apply
+    is set to True.
+    """
+    if not old or not new:
+        raise errors.ValidationError("Both old and new patterns must be provided")
+
+    old_pat = re.compile(old)
+
+    full_tag_list = list()
+    if category is not None:
+        tagcat = tagcatfuncs.get_category_by_name(category, False)
+
+        tag_list = (
+            db.session.query(model.Tag)
+            .filter(model.Tag.category == tagcat)
+            .order_by(model.Tag.name)
+            .all()
+        )
+
+        full_tag_list = (
+            db.session.query(model.Tag)
+            .order_by(model.Tag.name)
+            .all()
+        )
+    else:
+        tag_list = (
+            db.session.query(model.Tag)
+            .order_by(model.Tag.first_name)
+            .all()
+        )
+
+        full_tag_list = list(tag_list)
+        
+    existing_tags_by_id = {t.tag_id: t for t in full_tag_list}
+
+    replacements = list()
+    
+    for t in tag_list:
+        m = old_pat.search(t.first_name)
+        if m is not None:
+            new_name = old_pat.sub(new, t.first_name)
+            # don't do anything if the name doesn't change
+            if new_name.lower() != t.first_name.lower():
+                replacements.append((t, new_name))
+
+    name_list = (
+        db.session.query(model.TagName)
+        .order_by(model.TagName.name)
+        .all()
+    )
+
+    existing_names = {n.name.lower(): n for n in name_list}
+    simulated_existing = list(existing_names.keys())
+    actions = list()
+
+    for tag, new_fname in replacements:
+        if new_fname.lower() in simulated_existing:
+            # do this at the start of each path instead of after the if so we
+            # don't have to worry about renames that go to the same name
+            del simulated_existing[tag.first_name.lower()]
+
+            # TODO: I feel like there's a way to get this tag via the FK
+            # relationship on the existing name we already have, but whatever
+            # we already have tags in-mem so may as well just use that
+            target_id = existing_names[new_fname.lower()].tag_id
+            target = existing_tags_by_id[target_id]
+            actions.append(('merge', tag, new_fname, target))
+        else:
+            # do this at the start of each path instead of after the if so we
+            # don't have to worry about renames that go to the same name
+            del simulated_existing[tag.first_name.lower()]
+
+            simulated_existing.add(new_fname.lower())
+            actions.append(('rename', tag, new_fname, tag))
+
+    for act in actions:
+        action_type, tag, new_name, target = act
+
+        if action_type == 'merge':
+            target_name_clause = ''
+            if new_name.lower() != target.first_name.lower():
+                target_name_clause = f" ({target.first_name!r})"
+            print(f"MERGE: {tag.first_name!r} => {new_name!r}{target_name_clause}")
+
+            if apply:
+                all_new_names = list()
+                for n in target.names:
+                    all_new_names.append(n.name)
+                for n in tag.names:
+                    # exclude the original name of the tag and the new name
+                    if n.name.lower() != tag.first_name.lower() and n.name.lower() != new_name.lower():
+                        all_new_names.append(n.name)
+                
+                tagfuncs.merge_tags(tag, target)
+                tagfuncs.update_tag_names(target, all_new_names)
+
+        elif action_type == 'rename':
+            print(f"RENAME: {tag.first_name!r} -> {new_name!r}")
+
+            if apply:
+                all_new_names = list()
+                all_new_names.append(new_name)
+
+                for n in tag.names:
+                    if n.name.lower() != tag.first_name.lower():
+                        all_new_names.append(n.name)
+                tagfuncs.update_tag_name(tag, new_name)
+
+    if not apply:
+        print("No changes applied; if above looks correct, re-run with --apply")
+    else:
+        db.get_session().commit()
+        print("All changes applied")
 
 
 def reset_password(username: str) -> None:
