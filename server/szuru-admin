@@ -75,14 +75,14 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str) -> None:
     )
 
     existing_names = {n.name.lower(): n for n in name_list}
-    simulated_existing = list(existing_names.keys())
+    simulated_existing = set(existing_names.keys())
     actions = list()
 
     for tag, new_fname in replacements:
         if new_fname.lower() in simulated_existing:
             # do this at the start of each path instead of after the if so we
             # don't have to worry about renames that go to the same name
-            del simulated_existing[tag.first_name.lower()]
+            simulated_existing.remove(tag.first_name.lower())
 
             # TODO: I feel like there's a way to get this tag via the FK
             # relationship on the existing name we already have, but whatever
@@ -93,7 +93,7 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str) -> None:
         else:
             # do this at the start of each path instead of after the if so we
             # don't have to worry about renames that go to the same name
-            del simulated_existing[tag.first_name.lower()]
+            simulated_existing.remove(tag.first_name.lower())
 
             simulated_existing.add(new_fname.lower())
             actions.append(('rename', tag, new_fname, tag))
