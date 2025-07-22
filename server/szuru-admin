@@ -69,7 +69,7 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str) -> None:
                 replacements.append((t, new_name))
 
     if len(replacements) < 1:
-            print("No tags match {old!r}" % old)
+            print("No tags match {old!r}")
             return
 
     name_list = (
