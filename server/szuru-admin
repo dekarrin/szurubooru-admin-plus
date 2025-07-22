@@ -32,7 +32,7 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str) -> None:
     old_pat = re.compile(old)
 
     full_tag_list = list()
-    if category is not None:
+    if category is not None and category != '':
         tagcat = tagcatfuncs.get_category_by_name(category, False)
 
         tag_list = (
@@ -236,11 +236,35 @@ def main() -> None:
         "noting discrepancies, without modifying posts",
     )
 
-
     subparsers.add_parser(
         "reset-filenames",
         help="reset and rename the content and thumbnail "
         "filenames in case of a lost/changed secret key",
+    )
+
+    rename_tags_parser = subparsers.add_parser(
+        'rename-tags',
+        help="Rename tags with regular expressions.",
+    )
+
+    rename_tags_parser.add_argument(
+        "pattern",
+        help="the old tag pattern to match, as a regular expression. re.find() is used to detect matches, and re.sub() is used to replace them. All instances of the pattern will be replaced via substitution.",
+    )
+    rename_tags_parser.add_argument(
+        "replacement",
+        help="the replacement text for the matched tags. Use backslashes and numbers to refer to capture groups in the pattern.",
+    )
+    rename_tags_parser.add_argument(
+        "--category",
+        "-c",
+        help="The category of tags to limit the renaming to. If not specified, all tags are considered candidates for renaming.",
+    )
+    rename_tags_parser.add_argument(
+        "--apply",
+        "-a",
+        action="store_true",
+        help="Actually apply the changes. If not specified, only a simulation is run and no changes are made.",
     )
 
     command = parser_top.parse_args()
@@ -252,6 +276,13 @@ def main() -> None:
             check_audio()
         elif command.subcommand == "reset-filenames":
             reset_filenames()
+        elif command.subcommand == "rename-tags":
+            mass_rename_tags(
+                command.pattern,
+                command.replacement,
+                command.apply,
+                command.category,
+            )
     except errors.BaseError as e:
         print(e, file=stderr)
 
