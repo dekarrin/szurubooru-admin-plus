@@ -11,8 +11,7 @@ import time
 from argparse import ArgumentParser
 from getpass import getpass
 from sys import stderr
-from collections.abc import Iterable
-from typing import Any
+from typing import Any, Iterable
 
 from szurubooru import config, db, errors, model
 from szurubooru.func import files, images
