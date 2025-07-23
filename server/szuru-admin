@@ -30,7 +30,7 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bo
     """
     vprint = print if verbose else lambda *args, **kwargs: None
     def vseparate():
-        vprint("-" * 30)
+        vprint("-" * 40)
 
     if not old or not new:
         raise errors.ValidationError("Both old and new patterns must be provided")
@@ -115,7 +115,7 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bo
 
     rename_count = 0
     merge_count = 0
-    vprint("Checking for conflicting renames to convert to merges...")
+    vprint("Converting conflicting renames to merges...")
     for tag, new_fname in replacements:
         if new_fname.lower() in simulated_existing:
             # do this at the start of each path instead of after the if so we
@@ -147,7 +147,7 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bo
             rename_count += 1
             actions.append(('rename', tag, new_fname, tag))
 
-    vprint(f"{_p(rename_count, 'rename')}, {_p(merge_count, 'merge')}")
+    vprint(f"Result: {_p(rename_count, 'rename')}, {_p(merge_count, 'merge')}")
     vseparate()
     
     if apply:    
