@@ -70,7 +70,7 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bo
     replacements = list()
     has_no_ops = False
 
-    vprint(f"Found {_p(tag_list, "tag")}")
+    vprint(f"Found {_p(tag_list, 'tag')}")
     vprint(f"Filtering by tag first names matching {old_pat.pattern!r}")
     vprint(f"Replacing with {new!r}")
 
@@ -85,7 +85,7 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bo
                 vprint(f"Skip {t.first_name!r}; substitution results in same name")
                 has_no_ops = True
 
-    vprint(f"Got {_p(replacements, "rename")} to apply")
+    vprint(f"Got {_p(replacements, 'rename')} to apply")
     if len(replacements) < 1:
         if has_no_ops > 0:
             print("No matched tags would change", file=stderr)
@@ -100,7 +100,7 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bo
         .order_by(model.TagName.name)
         .all()
     )
-    vprint(f"Found {_p(name_list, "tag name")}")
+    vprint(f"Found {_p(name_list, 'tag name')}")
 
     existing_names = {n.name.lower(): n for n in name_list}
     renamed_tags = {}
