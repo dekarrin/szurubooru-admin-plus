@@ -183,6 +183,12 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bo
 
                 vprint(f"Merging {all_t_names!r} into {all_target_names!r}")
                 tagfuncs.merge_tags(tag, target)
+
+                # manually drop tag names so the tagname check doesn't universally fail:
+                db.session.query(model.TagName).filter(
+                    model.TagName.tag_id == tag.tag_id
+                ).delete()
+
                 new_tag = (db.session.query(model.Tag)
                     .filter(model.Tag.tag_id == target.tag_id)
                     .one())
