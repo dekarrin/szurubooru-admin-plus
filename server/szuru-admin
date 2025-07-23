@@ -69,7 +69,7 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bo
     replacements = list()
     has_no_ops = False
 
-    vprint(f"Found {_plural(tag_list, 'tag')}")
+    vprint(f"Found {_p(tag_list, 'tag')}")
     vprint(f"Filtering by tag first names matching {old_pat.pattern!r}")
     vprint(f"Replacing with {new!r}")
 
@@ -83,9 +83,8 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bo
             else:
                 vprint(f"Skip {t.first_name!r}; substitution results in same name")
                 has_no_ops = True
-
-    rename_count_label = _plural(replacements, 'rename')
-    vprint(f"Got {rename_count_label} to apply")
+    
+    vprint(f"Got {_p(replacements, 'rename')} to apply")
     if len(replacements) < 1:
         if has_no_ops > 0:
             print("No matched tags would change", file=stderr)
@@ -100,8 +99,7 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bo
         .order_by(model.TagName.name)
         .all()
     )
-    name_count_label = _plural(name_list, 'tag name')
-    vprint(f"Found {name_count_label}")
+    vprint(f"Found {_p(name_list, 'tag name')}")
 
     existing_names = {n.name.lower(): n for n in name_list}
     renamed_tags = {}
@@ -142,10 +140,8 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bo
 
             rename_count += 1
             actions.append(('rename', tag, new_fname, tag))
-    
-    rename_count_label = _plural(rename_count, 'rename')
-    merge_count_label = _plural(merge_count, 'merge')
-    vprint(f"{rename_count_label}, {merge_count_label}")
+
+    vprint(f"{_p(rename_count, 'rename')}, {_p(merge_count, 'merge')}")
     
     if apply:    
         vprint("All checks done; applying...")
@@ -355,7 +351,7 @@ def main() -> None:
         print(e, file=stderr)
 
 
-def _plural(count: Union[int, Iterable[Any]], root: str, plural_suf: str='s', singular_suf: str='') -> str:
+def _p(count: Union[int, Iterable[Any]], root: str, plural_suf: str='s', singular_suf: str='') -> str:
     """
     Returns the singular or plural form of a word based on the count.
     """
@@ -363,9 +359,9 @@ def _plural(count: Union[int, Iterable[Any]], root: str, plural_suf: str='s', si
         count = len(count)
 
     if count == 1:
-        return f"{root}{singular_suf}"
+        return f"{count} {root}{singular_suf}"
     else:
-        return f"{root}{plural_suf}"
+        return f"{count} {root}{plural_suf}"
 
 
 if __name__ == "__main__":
