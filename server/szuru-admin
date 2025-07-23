@@ -11,6 +11,8 @@ import time
 from argparse import ArgumentParser
 from getpass import getpass
 from sys import stderr
+from collections.abc import Iterable
+from typing import Any
 
 from szurubooru import config, db, errors, model
 from szurubooru.func import files, images
@@ -20,19 +22,25 @@ from szurubooru.func import tag_categories as tagcatfuncs
 from szurubooru.func import tags as tagfuncs
 
 
-def mass_rename_tags(old: str, new: str, apply: bool, category: str) -> None:
+
+def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bool) -> None:
     """
     Rename all tags matching the old pattern to the new pattern. Uses regular
     expressions for matching and replacing. Not actually applied unless apply
     is set to True.
     """
+    vprint = print if verbose else lambda *args, **kwargs: None
+
     if not old or not new:
         raise errors.ValidationError("Both old and new patterns must be provided")
 
     old_pat = re.compile(old)
 
+    vprint("Getting tags from DB...")
+
     full_tag_list = list()
     if category is not None and category != '':
+        vprint(f"Querying for tags in category {category!r}")
         tagcat = tagcatfuncs.get_category_by_name(category, False)
 
         tag_list = (
@@ -48,6 +56,7 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str) -> None:
             .all()
         )
     else:
+        vprint("Querying for all tags as no category was provided")
         tag_list = (
             db.session.query(model.Tag)
             .order_by(model.Tag.first_name)
@@ -61,28 +70,37 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str) -> None:
     replacements = list()
     has_no_ops = False
 
+    vprint(f"Found {_p(tag_list, "tag")}")
+    vprint(f"Filtering by tag first names matching {old_pat.pattern!r}")
+    vprint(f"Replacing with {new!r}")
+
     for t in tag_list:
         m = old_pat.search(t.first_name)
         if m is not None:
             new_name = old_pat.sub(new, t.first_name)
             if new_name.lower() != t.first_name.lower():
+                vprint(f"Matched {t.first_name!r} -> {new_name!r}")
                 replacements.append((t, new_name))
             else:
+                vprint(f"Skip {t.first_name!r}; substitution results in same name")
                 has_no_ops = True
 
+    vprint(f"Got {_p(replacements, "rename")} to apply")
     if len(replacements) < 1:
         if has_no_ops > 0:
-            print("No matched tags would be updated (substitution results in no changes to names)")
+            print("No matched tags would change", file=stderr)
             return
         else:
-            print("No tags matched pattern")
+            print("No tags matched", file=stderr)
             return
 
+    vprint("Getting all tag names from DB for conflict check...")
     name_list = (
         db.session.query(model.TagName)
         .order_by(model.TagName.name)
         .all()
     )
+    vprint(f"Found {_p(name_list, "tag name")}")
 
     existing_names = {n.name.lower(): n for n in name_list}
     renamed_tags = {}
@@ -90,8 +108,10 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str) -> None:
     simulated_existing = set(existing_names.keys())
     actions = list()
 
+    rename_count = 0
+    merge_count = 0
+    vprint("Checking for conflicting renames to convert to merges...")
     for tag, new_fname in replacements:
-        print(f"{tag.first_name!r} -> {new_fname!r}")
         if new_fname.lower() in simulated_existing:
             # do this at the start of each path instead of after the if so we
             # don't have to worry about renames that go to the same name
@@ -109,6 +129,7 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str) -> None:
                 # merging to a tag that we will rename
                 target = renamed_tags[new_fname.lower()]
 
+            merge_count += 1
             actions.append(('merge', tag, new_fname, target))
         else:
             # do this at the start of each path instead of after the if so we
@@ -117,7 +138,16 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str) -> None:
             simulated_existing.add(new_fname.lower())
             renamed_tags[new_fname.lower()] = tag
             renamed_names_by_old_name[tag.first_name.lower()] = new_fname.lower()
+
+            rename_count += 1
             actions.append(('rename', tag, new_fname, tag))
+    
+    vprint(f"{_p(rename_count, 'rename')}, {_p(merge_count, 'merge')}")
+    
+    if apply:    
+        vprint("All checks done; applying...")
+    else:
+        vprint("All checks done; listing changes without applying...")
 
     for act in actions:
         action_type, tag, new_name, target = act
@@ -294,6 +324,12 @@ def main() -> None:
         action="store_true",
         help="Actually apply the changes. If not specified, only a simulation is run and no changes are made.",
     )
+    rename_tags_parser.add_argument(
+        '--verbose',
+        '-v',
+        action='store_true',
+        help="Enable detailed output",
+    )
 
     command = parser_top.parse_args()
 
@@ -310,6 +346,7 @@ def main() -> None:
                 command.replacement,
                 command.apply,
                 command.category,
+                command.verbose,
             )
     except errors.BaseError as e:
         print(e, file=stderr)
@@ -317,3 +354,16 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+def _p(count: int | Iterable[Any], root: str, plural_suf: str='s', singular_suf: str='') -> str:
+    """
+    Returns the singular or plural form of a word based on the count.
+    """
+    if isinstance(count, Iterable):
+        count = len(count)
+
+    if count == 1:
+        return f"{root}{singular_suf}"
+    else:
+        return f"{root}{plural_suf}"
