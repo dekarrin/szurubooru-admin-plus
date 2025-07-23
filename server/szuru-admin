@@ -11,7 +11,7 @@ import time
 from argparse import ArgumentParser
 from getpass import getpass
 from sys import stderr
-from typing import Any, Iterable
+from typing import Any, Iterable, Union
 
 from szurubooru import config, db, errors, model
 from szurubooru.func import files, images
@@ -355,7 +355,7 @@ def main() -> None:
         print(e, file=stderr)
 
 
-def _plural(count: int | Iterable[Any], root: str, plural_suf: str='s', singular_suf: str='') -> str:
+def _plural(count: Union[int, Iterable[Any]], root: str, plural_suf: str='s', singular_suf: str='') -> str:
     """
     Returns the singular or plural form of a word based on the count.
     """
