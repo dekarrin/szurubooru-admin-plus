@@ -190,7 +190,7 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bo
                 for n in tag.names:
                     if n.name.lower() != tag.first_name.lower():
                         all_new_names.append(n.name)
-                tagfuncs.update_tag_name(tag, new_name)
+                tagfuncs.update_tag_names(tag, all_new_names)
 
         else:
             raise errors.ValidationError("Unknown action type: %s" % action_type)
