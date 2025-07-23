@@ -70,8 +70,7 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bo
     replacements = list()
     has_no_ops = False
 
-    tag_count_label = _plural(tag_list, 'tag')
-    vprint(f"Found {tag_count_label}")
+    vprint(f"Found {_plural(tag_list, 'tag')}")
     vprint(f"Filtering by tag first names matching {old_pat.pattern!r}")
     vprint(f"Replacing with {new!r}")
 
@@ -357,10 +356,6 @@ def main() -> None:
         print(e, file=stderr)
 
 
-if __name__ == "__main__":
-    main()
-
-
 def _plural(count: int | Iterable[Any], root: str, plural_suf: str='s', singular_suf: str='') -> str:
     """
     Returns the singular or plural form of a word based on the count.
@@ -372,3 +367,8 @@ def _plural(count: int | Iterable[Any], root: str, plural_suf: str='s', singular
         return f"{root}{singular_suf}"
     else:
         return f"{root}{plural_suf}"
+
+
+if __name__ == "__main__":
+    main()
+
