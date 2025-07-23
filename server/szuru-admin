@@ -70,7 +70,8 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bo
     replacements = list()
     has_no_ops = False
 
-    vprint(f"Found {_p(tag_list, 'tag')}")
+    tag_count_label = _plural(tag_list, 'tag')
+    vprint(f"Found {tag_count_label}")
     vprint(f"Filtering by tag first names matching {old_pat.pattern!r}")
     vprint(f"Replacing with {new!r}")
 
@@ -85,7 +86,8 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bo
                 vprint(f"Skip {t.first_name!r}; substitution results in same name")
                 has_no_ops = True
 
-    vprint(f"Got {_p(replacements, 'rename')} to apply")
+    rename_count_label = _plural(replacements, 'rename')
+    vprint(f"Got {rename_count_label} to apply")
     if len(replacements) < 1:
         if has_no_ops > 0:
             print("No matched tags would change", file=stderr)
@@ -100,7 +102,8 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bo
         .order_by(model.TagName.name)
         .all()
     )
-    vprint(f"Found {_p(name_list, 'tag name')}")
+    name_count_label = _plural(name_list, 'tag name')
+    vprint(f"Found {name_count_label}")
 
     existing_names = {n.name.lower(): n for n in name_list}
     renamed_tags = {}
@@ -142,7 +145,9 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bo
             rename_count += 1
             actions.append(('rename', tag, new_fname, tag))
     
-    vprint(f"{_p(rename_count, 'rename')}, {_p(merge_count, 'merge')}")
+    rename_count_label = _plural(rename_count, 'rename')
+    merge_count_label = _plural(merge_count, 'merge')
+    vprint(f"{rename_count_label}, {merge_count_label}")
     
     if apply:    
         vprint("All checks done; applying...")
@@ -356,7 +361,7 @@ if __name__ == "__main__":
     main()
 
 
-def _p(count: int | Iterable[Any], root: str, plural_suf: str='s', singular_suf: str='') -> str:
+def _plural(count: int | Iterable[Any], root: str, plural_suf: str='s', singular_suf: str='') -> str:
     """
     Returns the singular or plural form of a word based on the count.
     """
