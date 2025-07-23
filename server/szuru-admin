@@ -30,7 +30,7 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bo
     """
     vprint = print if verbose else lambda *args, **kwargs: None
     def vseparate():
-        vprint("-" * 40)
+        vprint("-" * 60)
 
     if not old or not new:
         raise errors.ValidationError("Both old and new patterns must be provided")
