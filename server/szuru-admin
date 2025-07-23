@@ -89,6 +89,7 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str) -> None:
     actions = list()
 
     for tag, new_fname in replacements:
+        print(f"{tag.first_name!r} -> {new_fname!r}")
         if new_fname.lower() in simulated_existing:
             # do this at the start of each path instead of after the if so we
             # don't have to worry about renames that go to the same name
