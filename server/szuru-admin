@@ -186,7 +186,7 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bo
                 new_tag = (db.session.query(model.Tag)
                     .filter(model.Tag.tag_id == target.tag_id)
                     .one())
-                vprint(f"All updated: {(n for n in new_tag.names)!r}")
+                vprint(f"All updated: {list(n for n in new_tag.names)!r}")
                 vprint(f"Update to: {all_new_names!r}")
                 tagfuncs.update_tag_names(target, all_new_names)
 
