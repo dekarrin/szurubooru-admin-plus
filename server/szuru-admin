@@ -85,6 +85,7 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str) -> None:
     )
 
     existing_names = {n.name.lower(): n for n in name_list}
+    renamed_tags = {}
     simulated_existing = set(existing_names.keys())
     actions = list()
 
@@ -95,18 +96,25 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str) -> None:
             # don't have to worry about renames that go to the same name
             simulated_existing.remove(tag.first_name.lower())
 
-            # TODO: I feel like there's a way to get this tag via the FK
-            # relationship on the existing name we already have, but whatever
-            # we already have tags in-mem so may as well just use that
-            target_id = existing_names[new_fname.lower()].tag_id
-            target = existing_tags_by_id[target_id]
+            if new_fname.lower() in existing_names:
+                # merging to a tag that existed before this script was run
+
+                # TODO: I feel like there's a way to get this tag via the FK
+                # relationship on the existing name we already have, but whatever
+                # we already have tags in-mem so may as well just use that
+                target_id = existing_names[new_fname.lower()].tag_id
+                target = existing_tags_by_id[target_id]
+            else:
+                # merging to a tag that we will rename
+                target = renamed_tags[new_fname.lower()]
+                
             actions.append(('merge', tag, new_fname, target))
         else:
             # do this at the start of each path instead of after the if so we
             # don't have to worry about renames that go to the same name
             simulated_existing.remove(tag.first_name.lower())
-
             simulated_existing.add(new_fname.lower())
+            renamed_tags[new_fname.lower()] = tag
             actions.append(('rename', tag, new_fname, tag))
 
     for act in actions:
