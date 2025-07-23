@@ -29,6 +29,8 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bo
     is set to True.
     """
     vprint = print if verbose else lambda *args, **kwargs: None
+    def vseparate():
+        vprint("-" * 30)
 
     if not old or not new:
         raise errors.ValidationError("Both old and new patterns must be provided")
@@ -70,6 +72,7 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bo
     has_no_ops = False
 
     vprint(f"Found {_p(tag_list, 'tag')}")
+    vseparate()
     vprint(f"Filtering by tag first names matching {old_pat.pattern!r}")
     vprint(f"Replacing with {new!r}")
 
@@ -85,6 +88,8 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bo
                 has_no_ops = True
     
     vprint(f"Got {_p(replacements, 'rename')} to apply")
+    vseparate()
+
     if len(replacements) < 1:
         if has_no_ops > 0:
             print("No matched tags would change", file=stderr)
@@ -100,6 +105,7 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bo
         .all()
     )
     vprint(f"Found {_p(name_list, 'tag name')}")
+    vseparate()
 
     existing_names = {n.name.lower(): n for n in name_list}
     renamed_tags = {}
@@ -142,6 +148,7 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bo
             actions.append(('rename', tag, new_fname, tag))
 
     vprint(f"{_p(rename_count, 'rename')}, {_p(merge_count, 'merge')}")
+    vseparate()
     
     if apply:    
         vprint("All checks done; applying...")
