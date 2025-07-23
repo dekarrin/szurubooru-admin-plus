@@ -214,7 +214,7 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bo
     if not apply:
         print("No changes applied; if above looks correct, re-run with --apply")
     else:
-        db.get_session().commit()
+        db.session.commit()
         print("All changes applied")
 
 
