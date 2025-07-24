@@ -244,8 +244,6 @@ def mass_recat_tags(search: str, new_cat: str, from_cat: str, verbose: bool, app
         vprint(f"Category already exists")
 
     vprint("Getting tags from DB...")
-
-    full_tag_list = list()
     if from_cat is not None and from_cat != '':
         vprint(f"Querying for tags in category {from_cat!r}")
         tagcat = tagcatfuncs.get_category_by_name(from_cat, False)
@@ -256,12 +254,6 @@ def mass_recat_tags(search: str, new_cat: str, from_cat: str, verbose: bool, app
             .order_by(model.Tag.first_name)
             .all()
         )
-
-        full_tag_list = (
-            db.session.query(model.Tag)
-            .order_by(model.Tag.first_name)
-            .all()
-        )
     else:
         vprint("Querying for all tags as no category was provided")
         tag_list = (
@@ -269,10 +261,6 @@ def mass_recat_tags(search: str, new_cat: str, from_cat: str, verbose: bool, app
             .order_by(model.Tag.first_name)
             .all()
         )
-
-        full_tag_list = list(tag_list)
-        
-    existing_tags_by_id = {t.tag_id: t for t in full_tag_list}
 
     updates = list()
     has_no_ops = False
@@ -308,13 +296,14 @@ def mass_recat_tags(search: str, new_cat: str, from_cat: str, verbose: bool, app
         vprint("Listing tags to move...")
 
     if not new_cat_exists:
-        vprint(f"CREATE new category {new_cat.name!r}")
+        print(f"CREATE new category {new_cat.name!r}")
         if apply:
             new_cat = tagcatfuncs.create_category(new_cat.name, '0073ff', 1)
             db.session.add(new_cat)
 
     for t in updates:
         t.category = new_cat
+        print(f"MOVE {t.first_name!r} to new category {new_cat.name!r}")
         db.session.add(t)
  
     if not apply:
