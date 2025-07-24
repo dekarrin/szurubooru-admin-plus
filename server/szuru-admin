@@ -311,64 +311,12 @@ def mass_recat_tags(search: str, new_cat: str, from_cat: str, verbose: bool, app
         vprint(f"CREATE new category {new_cat.name!r}")
         if apply:
             new_cat = tagcatfuncs.create_category(new_cat.name, '0073ff', 1)
-            db.get_session().add(new_cat)
+            db.session.add(new_cat)
 
     for t in updates:
-        tagfuncs.update_tag_category_name(t, )
-
-        if action_type == 'merge':
-            target_name_clause = ''
-            target_final_name = target.first_name.lower()
-            if target_final_name in renamed_names_by_old_name:
-                target_final_name = renamed_names_by_old_name[target_final_name]
-            
-            if new_name.lower() != target_final_name:
-                target_name_clause = f" ({target.first_name!r})"
-            print(f"MERGE:  {tag.first_name!r} => {new_name!r}{target_name_clause}")
-
-            if apply:
-                all_new_names = list()
-                all_target_names = []
-                all_t_names = []
-                for n in target.names:
-                    all_new_names.append(n.name)
-                    all_target_names.append(n.name)
-                for n in tag.names:
-                    all_t_names.append(n.name)
-                    # exclude the original name of the tag and the new name
-                    if n.name.lower() != tag.first_name.lower() and n.name.lower() != new_name.lower():
-                        all_new_names.append(n.name)
-
-                vprint(f"Merging {all_t_names!r} into {all_target_names!r}")
-                tagfuncs.merge_tags(tag, target)
-
-                # manually drop tag names so the tagname check doesn't universally fail:
-                db.session.query(model.TagName).filter(
-                    model.TagName.tag_id == tag.tag_id
-                ).delete()
-
-                new_tag = (db.session.query(model.Tag)
-                    .filter(model.Tag.tag_id == target.tag_id)
-                    .one())
-                vprint(f"All updated: {list(n.name for n in new_tag.names)!r}")
-                vprint(f"Update to: {all_new_names!r}")
-                tagfuncs.update_tag_names(target, all_new_names)
-
-        elif action_type == 'rename':
-            print(f"RENAME: {tag.first_name!r} -> {new_name!r}")
-
-            if apply:
-                all_new_names = list()
-                all_new_names.append(new_name)
-
-                for n in tag.names:
-                    if n.name.lower() != tag.first_name.lower():
-                        all_new_names.append(n.name)
-                tagfuncs.update_tag_names(tag, all_new_names)
-
-        else:
-            raise errors.ValidationError("Unknown action type: %s" % action_type)
-
+        t.category = new_cat
+        db.session.add(t)
+ 
     if not apply:
         print("No changes applied; if above looks correct, re-run with --apply")
     else:
