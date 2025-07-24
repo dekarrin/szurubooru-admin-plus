@@ -447,7 +447,7 @@ def main() -> None:
         '--verbose',
         '-v',
         action='store_true',
-        help="Enable detailed output",
+        help="Enable verbose output",
     )
 
     move_tags_parser = subparsers.add_parser(
@@ -477,7 +477,7 @@ def main() -> None:
         '--verbose',
         '-v',
         action='store_true',
-        help="Enable detailed output",
+        help="Enable verbose output",
     )
 
     command = parser_top.parse_args()
