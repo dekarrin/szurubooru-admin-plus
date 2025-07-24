@@ -224,7 +224,7 @@ def mass_move_tags(search: str, new_cat: str, from_cat: str, verbose: bool, appl
     category given by from_cat, or within all categories if from_cat is empty or
     not given. Not actually applied unless apply is set to True.
     """
-    vprint = print if verbose else lambda: None
+    vprint = print if verbose else lambda *args, **kwargs: None
     def vseparate():
         vprint("-" * 60)
 
