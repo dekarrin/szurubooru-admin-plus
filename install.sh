@@ -89,9 +89,6 @@ then
     NEW_SZURU_ADMIN_FILE="$SCRIPT_DIR/admin-dist/szuru-admin"
 else
     NEW_SZURU_ADMIN_FILE="$SCRIPT_DIR/server/szuru-admin"
-else
-    echo "Error: No szuru-admin script found in expected locations." >&2
-    exit 1
 fi
 
 script_copy_needed=
@@ -102,7 +99,7 @@ then
     new_sum="$(checksum "$NEW_SZURU_ADMIN_FILE")"
     if [ "$existing_sum" = "$new_sum" ]
     then
-        echo "Existing szuru-admin script already has updated contents; not copying." >&
+        echo "Existing szuru-admin script already has updated contents." >&2
     else    
         # use datetime checks to see if the file we have is newer
         existing_mtime="$(date -r "$INSTALL_DIR/admin/szuru-admin" '+%s')"
@@ -111,6 +108,8 @@ then
         then
             echo "Replacing old szuru-admin script with newer version..." >&2
             script_copy_needed=1
+        else
+            echo "Existing szuru-admin script is newer; not copying." >&2
         fi
     fi
 else
