@@ -22,13 +22,13 @@ from szurubooru.func import tags as tagfuncs
 
 
 
-def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bool) -> None:
+def mass_rename_tags(old: str, new: str, category: str, verbose: bool, apply: bool) -> None:
     """
     Rename all tags matching the old pattern to the new pattern. Uses regular
     expressions for matching and replacing. Not actually applied unless apply
     is set to True.
     """
-    vprint = print if verbose else lambda *args, **kwargs: None
+    vprint = print if verbose else lambda: None
     def vseparate():
         vprint("-" * 60)
 
@@ -157,6 +157,164 @@ def mass_rename_tags(old: str, new: str, apply: bool, category: str, verbose: bo
 
     for act in actions:
         action_type, tag, new_name, target = act
+
+        if action_type == 'merge':
+            target_name_clause = ''
+            target_final_name = target.first_name.lower()
+            if target_final_name in renamed_names_by_old_name:
+                target_final_name = renamed_names_by_old_name[target_final_name]
+            
+            if new_name.lower() != target_final_name:
+                target_name_clause = f" ({target.first_name!r})"
+            print(f"MERGE:  {tag.first_name!r} => {new_name!r}{target_name_clause}")
+
+            if apply:
+                all_new_names = list()
+                all_target_names = []
+                all_t_names = []
+                for n in target.names:
+                    all_new_names.append(n.name)
+                    all_target_names.append(n.name)
+                for n in tag.names:
+                    all_t_names.append(n.name)
+                    # exclude the original name of the tag and the new name
+                    if n.name.lower() != tag.first_name.lower() and n.name.lower() != new_name.lower():
+                        all_new_names.append(n.name)
+
+                vprint(f"Merging {all_t_names!r} into {all_target_names!r}")
+                tagfuncs.merge_tags(tag, target)
+
+                # manually drop tag names so the tagname check doesn't universally fail:
+                db.session.query(model.TagName).filter(
+                    model.TagName.tag_id == tag.tag_id
+                ).delete()
+
+                new_tag = (db.session.query(model.Tag)
+                    .filter(model.Tag.tag_id == target.tag_id)
+                    .one())
+                vprint(f"All updated: {list(n.name for n in new_tag.names)!r}")
+                vprint(f"Update to: {all_new_names!r}")
+                tagfuncs.update_tag_names(target, all_new_names)
+
+        elif action_type == 'rename':
+            print(f"RENAME: {tag.first_name!r} -> {new_name!r}")
+
+            if apply:
+                all_new_names = list()
+                all_new_names.append(new_name)
+
+                for n in tag.names:
+                    if n.name.lower() != tag.first_name.lower():
+                        all_new_names.append(n.name)
+                tagfuncs.update_tag_names(tag, all_new_names)
+
+        else:
+            raise errors.ValidationError("Unknown action type: %s" % action_type)
+
+    if not apply:
+        print("No changes applied; if above looks correct, re-run with --apply")
+    else:
+        db.session.commit()
+        print("All changes applied")
+
+
+def mass_recat_tags(search: str, new_cat: str, from_cat: str, verbose: bool, apply: bool) -> None:
+    """
+    Update the category of all tags matching the search pattern within the
+    category given by from_cat, or within all categories if from_cat is empty or
+    not given. Not actually applied unless apply is set to True.
+    """
+    vprint = print if verbose else lambda: None
+    def vseparate():
+        vprint("-" * 60)
+
+    if not search or not new_cat.strip():
+        raise errors.ValidationError("Both search and new category must be provided")
+
+    search_pat = re.compile(search)
+
+    new_cat_exists = False
+    vprint(f"Checking if new category {new_cat!r} exists...")
+    new_cat_name = new_cat.strip()
+    new_cat = tagcatfuncs.try_get_category_by_name(new_cat_name, False)
+    if new_cat is None:
+        vprint(f"New category does not yet exist and will be created")
+    else:
+        new_cat_exists = True
+        vprint(f"Category already exists")
+
+    vprint("Getting tags from DB...")
+
+    full_tag_list = list()
+    if from_cat is not None and from_cat != '':
+        vprint(f"Querying for tags in category {from_cat!r}")
+        tagcat = tagcatfuncs.get_category_by_name(from_cat, False)
+
+        tag_list = (
+            db.session.query(model.Tag)
+            .filter(model.Tag.category == tagcat)
+            .order_by(model.Tag.first_name)
+            .all()
+        )
+
+        full_tag_list = (
+            db.session.query(model.Tag)
+            .order_by(model.Tag.first_name)
+            .all()
+        )
+    else:
+        vprint("Querying for all tags as no category was provided")
+        tag_list = (
+            db.session.query(model.Tag)
+            .order_by(model.Tag.first_name)
+            .all()
+        )
+
+        full_tag_list = list(tag_list)
+        
+    existing_tags_by_id = {t.tag_id: t for t in full_tag_list}
+
+    updates = list()
+    has_no_ops = False
+
+    vprint(f"Found {_p(tag_list, 'tag')}")
+    vseparate()
+    vprint(f"Filtering by tag first names matching {search.pattern!r}")    
+
+    for t in tag_list:
+        m = search_pat.search(t.first_name)
+        if m is not None:
+            if t.category.name.lower() != new_cat.lower():
+                vprint(f"Matched {t.first_name!r}")
+                updates.append(t)
+            else:
+                vprint(f"Skip {t.first_name!r}; already in category {new_cat!r}")
+                has_no_ops = True
+
+    vprint(f"Got {_p(updates, 'tag')} to move")
+    vseparate()
+
+    if len(updates) < 1:
+        if has_no_ops > 0:
+            print("All matched tags are already in category", file=stderr)
+            return
+        else:
+            print("No tags matched", file=stderr)
+            return
+    
+    if apply:    
+        vprint("Moving tags to new category...")
+    else:
+        vprint("Listing tags to move...")
+
+    if not new_cat_exists:
+        vprint(f"CREATE new category {new_cat.name!r}")
+        if apply:
+            new_cat = tagcatfuncs.create_category(new_cat.name, '0073ff', 1)
+            db.get_session().add(new_cat)
+
+    for t in updates:
+        tagfuncs.update_tag_category_name(t, )
 
         if action_type == 'merge':
             target_name_clause = ''
@@ -366,9 +524,9 @@ def main() -> None:
             mass_rename_tags(
                 command.pattern,
                 command.replacement,
-                command.apply,
                 command.category,
                 command.verbose,
+                command.apply,
             )
     except errors.BaseError as e:
         print(e, file=stderr)
