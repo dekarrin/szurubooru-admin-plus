@@ -216,6 +216,8 @@ def mass_rename_tags(old: str, new: str, category: str, verbose: bool, apply: bo
     else:
         db.get_session().commit()
         print("All changes applied")
+    
+    print("WARNING: Active servers will not see changes until a client mutates something.")
 
 
 def mass_move_tags(search: str, new_cat: str, from_cat: str, verbose: bool, apply: bool) -> None:
@@ -313,6 +315,8 @@ def mass_move_tags(search: str, new_cat: str, from_cat: str, verbose: bool, appl
     else:
         db.get_session().commit()
         print("All changes applied")
+    
+    print("WARNING: Active servers will not see changes until a client mutates something.")
 
 
 def reset_password(username: str) -> None:
