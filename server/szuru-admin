@@ -218,7 +218,7 @@ def mass_rename_tags(old: str, new: str, category: str, verbose: bool, apply: bo
         print("All changes applied")
 
 
-def mass_recat_tags(search: str, new_cat: str, from_cat: str, verbose: bool, apply: bool) -> None:
+def mass_move_tags(search: str, new_cat: str, from_cat: str, verbose: bool, apply: bool) -> None:
     """
     Update the category of all tags matching the search pattern within the
     category given by from_cat, or within all categories if from_cat is empty or
@@ -428,7 +428,7 @@ def main() -> None:
     )
     rename_tags_parser.add_argument(
         "replacement",
-        help="the replacement text for the matched tags. Use backslashes and numbers to refer to capture groups in the pattern.",
+        help="The replacement text for the matched tags. Use backslashes and numbers to refer to capture groups in the pattern.",
     )
     rename_tags_parser.add_argument(
         "--category",
@@ -448,6 +448,36 @@ def main() -> None:
         help="Enable detailed output",
     )
 
+    move_tags_parser = subparsers.add_parser(
+        'move-tags',
+        help="Move tags to a new category based on a search pattern.",
+    )
+    move_tags_parser.add_argument(
+        "search",
+        help="The search pattern to match tags against. re.find() is used to detect matches.",
+    )
+    move_tags_parser.add_argument(
+        "new_category",
+        help="The new category to move matching tags to",
+    )
+    move_tags_parser.add_argument(
+        "--category",
+        "-c",
+        help="The category to move tags from. If not specified, all categories are considered.",
+    )
+    move_tags_parser.add_argument(
+        "--apply",
+        "-a",
+        action="store_true",
+        help="Actually apply the changes. If not specified, only a simulation is run and no changes are made.",
+    )
+    move_tags_parser.add_argument(
+        '--verbose',
+        '-v',
+        action='store_true',
+        help="Enable detailed output",
+    )
+
     command = parser_top.parse_args()
 
     try:
@@ -461,6 +491,14 @@ def main() -> None:
             mass_rename_tags(
                 command.pattern,
                 command.replacement,
+                command.category,
+                command.verbose,
+                command.apply,
+            )
+        elif command.subcommand == "move-tags":
+            mass_move_tags(
+                command.search,
+                command.new_category,
                 command.category,
                 command.verbose,
                 command.apply,
