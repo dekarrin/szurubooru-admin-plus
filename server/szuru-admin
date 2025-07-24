@@ -267,7 +267,7 @@ def mass_move_tags(search: str, new_cat: str, from_cat: str, verbose: bool, appl
 
     vprint(f"Found {_p(tag_list, 'tag')}")
     vseparate()
-    vprint(f"Filtering by tag first names matching {search.pattern!r}")    
+    vprint(f"Filtering by tag first names matching {search_pat.pattern!r}")    
 
     for t in tag_list:
         m = search_pat.search(t.first_name)
