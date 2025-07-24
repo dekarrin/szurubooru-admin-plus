@@ -304,8 +304,9 @@ def mass_move_tags(search: str, new_cat: str, from_cat: str, verbose: bool, appl
     new_clause = '' if new_cat_exists else ' new'
     for t in updates:
         t.category = new_cat
-        print(f"MOVE {t.first_name!r} to category{new_clause} {new_cat.name!r}")
-        db.session.add(t)
+        print(f"MOVE {t.first_name!r} to category{new_clause} {new_cat_name!r}")
+        if apply:
+            db.session.add(t)
  
     if not apply:
         print("No changes applied; if above looks correct, re-run with --apply")
