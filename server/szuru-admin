@@ -214,7 +214,7 @@ def mass_rename_tags(old: str, new: str, category: str, verbose: bool, apply: bo
     if not apply:
         print("No changes applied; if above looks correct, re-run with --apply")
     else:
-        db.session.commit()
+        db.get_session().commit()
         print("All changes applied")
 
 
@@ -311,7 +311,7 @@ def mass_move_tags(search: str, new_cat: str, from_cat: str, verbose: bool, appl
     if not apply:
         print("No changes applied; if above looks correct, re-run with --apply")
     else:
-        db.session.commit()
+        db.get_session().commit()
         print("All changes applied")
 
 
