@@ -28,7 +28,7 @@ def mass_rename_tags(old: str, new: str, category: str, verbose: bool, apply: bo
     expressions for matching and replacing. Not actually applied unless apply
     is set to True.
     """
-    vprint = print if verbose else lambda: None
+    vprint = print if verbose else lambda *args, **kwargs: None
     def vseparate():
         vprint("-" * 60)
 
