@@ -7,7 +7,7 @@ version: '2'
 services:
 
   server:
-    image: szurubooru/server:latest
+    image: szurubooru/server:2.5
     depends_on:
       - sql
     environment:
@@ -24,9 +24,10 @@ services:
     volumes:
       - "${MOUNT_DATA}:/data"
       - "./server/config.yaml:/opt/app/config.yaml"
+      - "./admin/szuru-admin:/opt/app/szuru-admin"
 
   client:
-    image: szurubooru/client:latest
+    image: szurubooru/client:2.5
     depends_on:
       - server
     environment:
