@@ -9,13 +9,8 @@
 set -euo pipefail
 
 # if version was given, use that; otherwise, use the current git commit hash
-if [ -n "$1" ]; then
-    VERSION="$1"
-else
-    echo "Version not specified; using current git commit hash" >&2
-    VERSION="$(git rev-parse --short HEAD)"
-fi
-
+git_commit="$(git rev-parse --short HEAD)"
+VERSION="${1:-$git_commit}"
 DIST_DIR="szuru-admin-plus-v$VERSION"
 
 mkdir -p "$DIST_DIR"
