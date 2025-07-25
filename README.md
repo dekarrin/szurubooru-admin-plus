@@ -24,6 +24,11 @@ To install, run the included `install.sh` script from within the directory
 containing the docker-compose.yml file for Szurubooru. Alternatively, you can
 run the script from any location and pass in the path to that directory.
 
+## Updating
+
+Updating follows the same process; run `install.sh`. The script is smart enough
+to only make changes necessary to update.
+
 ## Attribution and Licensing
 
 This project is derived from the source code of szurubooru v2.5, which is
