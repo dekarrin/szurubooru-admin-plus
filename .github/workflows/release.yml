@@ -19,7 +19,9 @@ jobs:
       - name: Load Tarball Name
         run: echo 'TARBALL_NAME="'"$(cat TB_NAME)"'"' >> $GITHUB_ENV
       - name: Verify Files
-        run: ls -la 
+        run: ls -la
+      - name: Verify var quoting Remove ME
+        run: echo "$TARBALL_NAME" > test_file ; cat test_file
       - name: Upload To Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
