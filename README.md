@@ -24,10 +24,18 @@ To install, run the included `install.sh` script from within the directory
 containing the docker-compose.yml file for Szurubooru. Alternatively, you can
 run the script from any location and pass in the path to that directory.
 
-## Updating
+### Updating
 
 Updating follows the same process; run `install.sh`. The script is smart enough
 to only make changes necessary to update.
+
+## Repo Server Files
+
+The repository for szurubooru-admin-plus includes the entire server library from
+Szurubooru v2.5 to make it easy to develop against, located in ./server;
+however, the only server file under development in this repo and included in
+releases is ./server/szuru-admin. All other files under server/ should not be
+modified; they are included only as a reference.
 
 ## Attribution and Licensing
 
