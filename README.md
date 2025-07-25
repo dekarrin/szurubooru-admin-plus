@@ -1,15 +1,30 @@
 szurubooru-admin-plus
 =====================
 
-Adds some additional extenions for szurubooru admin tool, especially for
-mass operations on tags.
+Enhances the szurubooru admin tool with additional functionality.
 
-Modification is intended to apply only to szurubooru v2.5.
+* Rename tags by regular expression patterns
+* Move tags matching regex to new category
 
-To apply, drop the szuru-admin folder into admin dir and add a volume to the
-server service "./admin/szuru-admin:./szuru-admin".
+## Requirements
 
-----
+This script is intended exclusively for use with Szurubooru v2.5. It has not
+been tested with any version outside of that. Additionally, szurubooru must be
+set up and running using docker-compose.
+
+Note: The installer script will assume you are running version 2.5 with no
+further checks and using the default directory set up implied by the volume
+mounts in the docker-compose.yml included with Szurubooru v2.5. If the install
+script is run against a different version or a deploy with a different volume
+setup, **it will force that version to 2.5, possibly causing data loss.**
+
+## Installation
+
+To install, run the included `install.sh` script from within the directory
+containing the docker-compose.yml file for Szurubooru. Alternatively, you can
+run the script from any location and pass in the path to that directory.
+
+## Attribution and Licensing
 
 This project is derived from the source code of szurubooru v2.5, which is
 licensed under the terms of the GNU GPL v3.0. As such, this project is itself
