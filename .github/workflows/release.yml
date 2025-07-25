@@ -9,13 +9,16 @@ permissions:
   contents: write
 
 jobs:
-          
-  collect-source-and-docs:
+  tarball:
+    name: Create and Upload Tarball
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Create Tarball
         run: ./make-dist.sh ${{ github.ref_name }} | tee /dev/stdout > TARBALL_NAME
+      # Since this is all within the same job, could just load the tarball name
+      # directly from TARBALL_NAME file, keeping it using GITHUB_ENV so I have
+      # a future reference.
       - name: Load Tarball Name
         run: echo "TARBALL_NAME=$(cat TARBALL_NAME)" >> $GITHUB_ENV
       - name: Verify Files
@@ -25,4 +28,3 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: gh release upload ${{ github.ref_name }} "$TARBALL_NAME"
-
