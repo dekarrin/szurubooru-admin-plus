@@ -19,6 +19,9 @@ jobs:
       # Since this is all within the same job, could just load the tarball name
       # directly from TARBALL_NAME file, keeping it using GITHUB_ENV so I have
       # a future reference.
+      #
+      # NOTE: DO NOT QUOTE VALUES SENT TO $GITHUB_ENV! it will read the quotes
+      # as part of the value.
       - name: Load Tarball Name
         run: echo "TARBALL_NAME=$(cat TARBALL_NAME)" >> $GITHUB_ENV
       - name: Verify Files
