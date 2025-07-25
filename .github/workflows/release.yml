@@ -18,9 +18,9 @@ jobs:
         run: ./make-dist.sh ${{ github.ref_name }} | tee /dev/stdout > TB_NAME
       - name: Load Tarball Name
         run: echo 'TARBALL_NAME="'"$(cat TB_NAME)"'"' >> $GITHUB_ENV
-     - name: Verify Files
-       run: ls -la 
-     - name: Upload To Release
+      - name: Verify Files
+        run: ls -la 
+      - name: Upload To Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
