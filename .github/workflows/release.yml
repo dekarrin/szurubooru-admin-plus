@@ -1,0 +1,24 @@
+on:
+  release:
+    types: [published]
+
+permissions:
+  actions: write
+  contents: write
+
+jobs:
+          
+  collect-source-and-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create Tarball
+        run: ./make-dist.sh ${{ github.ref_name }} | tee /dev/stdout > TB_NAME
+      - name: Load Tarball Name
+        run: echo 'TARBALL_NAME="'"$(cat TB_NAME)"'"' >> $GITHUB_ENV
+      - name: Upload To Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: gh release upload ${{ github.ref_name }} "$TARBALL_NAME"
+
