@@ -12,7 +12,7 @@ import math
 from argparse import ArgumentParser
 from getpass import getpass
 from sys import stderr
-from typing import Any, Iterable, Union, Tuple, Callable
+from typing import Any, Iterable, Union, Tuple, Callable, List
 
 from szurubooru import config, db, errors, model
 from szurubooru.func import files, images
@@ -22,7 +22,7 @@ from szurubooru.func import tag_categories as tagcatfuncs
 from szurubooru.func import tags as tagfuncs
 
 
-def resync(ids: list[int], verbose: bool) -> None:
+def resync(ids: List[int], verbose: bool) -> None:
     """
     Refresh post data from the content currently in its file on disk.
     """
