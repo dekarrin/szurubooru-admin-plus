@@ -8,10 +8,11 @@ import logging
 import os
 import re
 import time
+import math
 from argparse import ArgumentParser
 from getpass import getpass
 from sys import stderr
-from typing import Any, Iterable, Union
+from typing import Any, Iterable, Union, Tuple, Callable
 
 from szurubooru import config, db, errors, model
 from szurubooru.func import files, images
@@ -20,9 +21,63 @@ from szurubooru.func import users as userfuncs
 from szurubooru.func import tag_categories as tagcatfuncs
 from szurubooru.func import tags as tagfuncs
 
-
-def replace_content_file(img_id: str, f_name: str) -> None:
+def _bytes_to_iec_units(b: int, pluralize=True, mag_0_name='byte', precision=2) -> Tuple[float, str]:
+    """
+    Convert a number of bytes to the highest IEC binary prefixed unit that there
+    is at least one of. Return a tuple containing the count of data in that unit
+    represented by b, and a string containing both b and the unit name itself
+    using IEC abbreviations (MiB, GiB, etc). For example, 1024 would return
+    (1.0, '1.0 KiB'), 1536 would return (1.5, '1.5 KiBs'), and 20971520 would
+    return (20.0, '20.0 MiB').
     
+    Units up to the exabyte order of magnitude are supported. Prefixes higher
+    than EiB will simply be represented as their equivalent EiB amount.
+    
+    If b is less than 1024, the unabbreviated name 'byte' is used as the unit
+    name, so for instance if b were 512, the full returned string would be
+    '512 bytes'. This name can be modified by setting mag_0. Additionally, the
+    numerical value in this case is always formatted as an int, not a float.
+
+    Returned unit names will be pluralized unless b converts to exactly one of
+    that unit; set pluralize to false to disable this behavior and always return
+    singular names.
+    
+    Precision by default will be one floating point decimal, but can be changed
+    by setting the parameter precision to a different value.
+    """
+    unit_names = ['byte', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB']
+    mag = int(math.log(b, 1024))
+    if mag >= len(unit_names):
+        mag = len(unit_names) - 1
+
+    # do the math
+    amount = b / 1024**mag
+    unit = unit_names[mag]
+
+    # prep to print
+    plural_s = 's' if pluralize and amount != 1.0 else ''
+    if 
+    val_field = '{:.{precision}f}' if mag > 0 else '{:d}'
+    fmt_str = val_field + '{:s} {:s}'
+
+    if amount == 1.0:
+        return 
+
+
+def replace_content_from_local_file(id: int, path: str, verbose: bool, size_limit: int=500*(1024**2)) -> None:
+    """
+    Replace the content of a file. Immediately applied with no option to dry run, so be careful
+    """
+    vprint, vseparate = _vprinters(verbose)
+
+    # check file is not over max size
+    compare_magnitude = 0
+    unit_names = ['byte', 'KiB', 'MiB', 'GiB']
+    while (size_limit / 1024**compare_magnitude) > 1024 and compare_magnitde + 1 < len(unit_names):
+        compare_magniude += 1
+    comp_size = os.path.getsize(filepath) / 1024**compare_magnitude
+    mb_size = fsize / (1024**2)
+    p = postfuncs.get_post_by_id(id)
 
 
 def mass_rename_tags(old: str, new: str, category: str, verbose: bool, apply: bool) -> None:
@@ -527,6 +582,12 @@ def _p(count: Union[int, Iterable[Any]], root: str, plural_suf: str='s', singula
         return f"{count} {root}{singular_suf}"
     else:
         return f"{count} {root}{plural_suf}"
+
+
+def _vprinters(verbose: bool) -> Tuple[Callable, Callable]:
+    vprint = print if verbose else lambda *args, **kwargs: None
+    vseparate = lambda: vprint("-", 60)
+    return vprint, vseparate
 
 
 if __name__ == "__main__":
