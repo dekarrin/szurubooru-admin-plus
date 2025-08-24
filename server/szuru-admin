@@ -21,6 +21,9 @@ from szurubooru.func import tag_categories as tagcatfuncs
 from szurubooru.func import tags as tagfuncs
 
 
+def replace_content_file(img_id: str, f_name: str) -> None:
+    
+
 
 def mass_rename_tags(old: str, new: str, category: str, verbose: bool, apply: bool) -> None:
     """
