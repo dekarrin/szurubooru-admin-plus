@@ -72,7 +72,7 @@ fi
 # Copy convenience script to the szurubooru directory if needed
 if [ -f "$INSTALL_DIR/szuru-admin.sh" ]
 then
-    echo "szuru-admin.sh already present; not replacing" >&2
+    echo "./szuru-admin.sh already present; not replacing" >&2
 else
     cp "$SCRIPT_DIR/admin-dist/szuru-admin.sh" "$INSTALL_DIR/szuru-admin.sh"
     echo "Copied szuru-admin.sh to $INSTALL_DIR" >&2
@@ -99,17 +99,17 @@ then
     new_sum="$(checksum "$NEW_SZURU_ADMIN_FILE")"
     if [ "$existing_sum" = "$new_sum" ]
     then
-        echo "Existing szuru-admin script already has updated contents." >&2
+        echo "Existing server/szuru-admin script already has updated contents." >&2
     else    
         # use datetime checks to see if the file we have is newer
         existing_mtime="$(date -r "$INSTALL_DIR/admin/szuru-admin" '+%s')"
         new_mtime="$(date -r "$NEW_SZURU_ADMIN_FILE" '+%s')"
         if [ "$existing_mtime" -lt "$new_mtime" ]
         then
-            echo "Replacing old szuru-admin script with newer version..." >&2
+            echo "Replacing old server/szuru-admin script with newer version..." >&2
             script_copy_needed=1
         else
-            echo "Existing szuru-admin script is newer; not copying." >&2
+            echo "Existing server/szuru-admin script is newer; not copying." >&2
         fi
     fi
 else
@@ -119,7 +119,7 @@ fi
 if [ -n "$script_copy_needed" ]
 then
     cp "$NEW_SZURU_ADMIN_FILE" "$INSTALL_DIR/admin/szuru-admin"
-    echo "Copied szuru-admin script to $INSTALL_DIR/admin/szuru-admin" >&2
+    echo "Copied server/szuru-admin script to $INSTALL_DIR/admin/szuru-admin" >&2
 else
-    echo "No need to copy szuru-admin script; it is already up-to-date." >&2
+    echo "No need to copy server/szuru-admin script; it is already up-to-date." >&2
 fi

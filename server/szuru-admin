@@ -604,9 +604,9 @@ def _bytes_to_iec_units(b: int, pluralize=True, mag_0_name='byte', precision=1) 
     amount = b / 1024**mag
     unit = unit_names[mag] + 's' if pluralize and amount != 1.0 else ''
     
-    val_str = '{:d}'.format(int(amount))
+    val_str = ''
     if mag == 0:
-        val_str += 
+        val_str += '{:d}'.format(int(amount))
     else:
         val_str += '{:.{prec}f}'.format(amount, prec=precision)
 
