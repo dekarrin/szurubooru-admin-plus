@@ -39,7 +39,10 @@ def resync(ids: List[int], verbose: bool) -> None:
         # chuck it in
         postfuncs.update_post_content(p, fcontent)
         
-        print("Content data refreshed for post {:d}".format(post_id))
+        print("Will refresh content data for post {:d}...".format(post_id))
+    
+    db.get_session().commit()
+    print("Successfully updated all content")
 
 
 def mass_rename_tags(old: str, new: str, category: str, verbose: bool, apply: bool) -> None:
