@@ -301,12 +301,14 @@ def mass_tag(
             vprint("Found no additional tags by implication")
             print("Implied tag(s): (none)")
 
+    vseparate()
+
     # do search of posts to get candidates
     conf = szurusearch.configs.PostSearchConfig()
     searcher = szurusearch.Executor(conf)
     vprint("Search with {!r}".format(search))
-    vseparate()
-    count, posts = searcher.execute(search, 0, 10)
+    count, posts = searcher.execute(search, 0, 5)
+    vprint("Total: {:d}".format(count))
 
     def id_to_link(id):
         return f"{config.config['domain']}/post/{id}"
