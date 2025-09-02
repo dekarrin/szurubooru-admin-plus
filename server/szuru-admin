@@ -304,6 +304,8 @@ def mass_tag(
     # do search of posts to get candidates
     conf = szurusearch.configs.PostSearchConfig()
     searcher = szurusearch.Executor(conf)
+    vprint("Search with {:r}".format(search))
+    vseparate()
     count, posts = searcher.execute(search, 0, 10)
     for post in posts:
         p: model.Post = post
