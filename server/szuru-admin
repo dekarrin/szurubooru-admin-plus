@@ -295,8 +295,8 @@ def mass_tag(
         op = 'added' if not removal else 'removed'
 
         if len(all_added) > 0:
-            vprint(f"{_p(len(all_added), 'additional tag')} will be {op} by implication")
-            print("Implied tag(s): {:s}".format(', '.join(f'`{t.first_name}`' for t in sorted(list(all_added)))))
+            vprint(f"{_p(all_added, 'additional tag')} will be {op} by implication")
+            print("Implied tag(s): {:s}".format(', '.join(f'`{t}`' for t in sorted(list(all_added)))))
         else:
             vprint("Found no additional tags by implication")
             print("Implied tag(s): (none)")
