@@ -307,7 +307,17 @@ def mass_tag(
     conf = szurusearch.configs.PostSearchConfig()
     searcher = szurusearch.Executor(conf)
     vprint("Search with {!r}".format(search))
-    count, posts = searcher.execute(search, 0, 5)
+
+    posts: List[model.Post] = []
+    # get all posts until total agrees with actual
+    while True:
+        total_count = postfuncs.get_post_count()
+        count, posts = searcher.execute(search, 0, total_count)
+
+        if count == len(posts):
+            break
+        
+        vprint("Got different count of search than expected; re-trying to avoid concurrent modification...")
     vprint("Total: {:d}".format(count))
 
     def id_to_link(id):
