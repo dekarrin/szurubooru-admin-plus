@@ -15,6 +15,7 @@ from sys import stderr
 from typing import Any, Iterable, Union, Tuple, Callable, List
 
 from szurubooru import config, db, errors, model
+from szurubooru import search as szurusearch
 from szurubooru.func import files, images
 from szurubooru.func import posts as postfuncs
 from szurubooru.func import users as userfuncs
@@ -243,6 +244,7 @@ def mass_rename_tags(old: str, new: str, category: str, verbose: bool, apply: bo
     print("WARNING: Active servers will not see changes until a client mutates something.")
 
 
+
 def mass_tag(
         search: str,
         tags: List[str],
@@ -261,7 +263,55 @@ def mass_tag(
 
     Not actually applied unless apply is set to True.
     """
-    pass
+    # get verbose printers
+    vprint, vseparate = _vprinters(verbose)
+
+    # apply implications to the given tags if needed
+    if implications:
+        all_added = set()
+        vprint("Checking tags for implications...")
+        tags_with_implied = set(tags)
+        for tname in tags:
+            t = tagfuncs.try_get_tag_by_name(tname)
+            if not t:
+                # no implications if the tag doesn't exist; not an error
+                vprint(f"`{tname!r}` does not exist; skipping")
+                continue
+
+            if len(t.implications) < 1:
+                vprint(f"`{tname!r}` has no implications")
+                continue
+
+            all_impls = _get_recursive_implications(t)
+            as_str = ', '.join('`{impl}`' for impl in all_impls)
+
+            vprint(f"`{tname!r}` -> {as_str}")
+            for implied_tag in all_impls:
+                if implied_tag.first_name not in tags_with_implied:
+                    all_added.add(implied_tag.first_name)
+                tags_with_implied.add(implied_tag.first_name)
+
+        tags = sorted(list(tags_with_implied))
+        op = 'added' if not removal else 'removed'
+
+        if len(all_added) > 0:
+            vprint(f"{_p(len(all_added), 'additional tag')} will be {op} by implication")
+            print("Implied tag(s): {:s}".format(', '.join('`{}`'.format(t) for t in sorted(list(all_added)))))
+        else:
+            vprint("Found no additional tags by implication")
+            print("Implied tag(s): (none)")
+
+    # do search of posts to get candidates
+    conf = szurusearch.configs.PostSearchConfig()
+    searcher = szurusearch.Executor(conf)
+    count, posts = searcher.execute(search, 0, 10)
+    for post in posts:
+        p: model.Post = post
+        vprint(f"Matched post {p.post_id}")
+
+    # for each candidate, perform following steps:
+    #  - if adding tags, make list of all to be added and associate to id.
+    #  - if removing tags, make list of all to be removed that are present and associate to id.
 
 
 def mass_move_tags(search: str, new_cat: str, from_cat: str, verbose: bool, apply: bool) -> None:
@@ -551,7 +601,7 @@ def main() -> None:
     )
     tag_parser.add_argument(
         "search",
-        help="The search expression to match posts against, in szurubooru tag-search syntax. Supports additional keyword 'in_cat:X' that may be used in expression to specify all tags that are in category X; it will be replaced with an OR'd list of all tags in that category before being passed to szurubooru.",
+        help="The search expression to match posts against, in szurubooru tag-search syntax.",
     )
     tag_parser.add_argument(
         'tags',
@@ -640,6 +690,22 @@ def _vprinters(verbose: bool) -> Tuple[Callable, Callable]:
     vprint = print if verbose else lambda *args, **kwargs: None
     vseparate = lambda: vprint("-", 60)
     return vprint, vseparate
+
+
+def _get_recursive_implications(tag: model.Tag, results: set[model.Tag]=None) -> set[model.Tag]:
+    if results is None:
+        results = set()
+
+    for impl in tag.implications:
+        if any(impl.first_name == t for t in results):
+            continue
+
+        results.add(impl)
+        new_results = _get_recursive_implications(impl, set(results))
+        # remove the tag itself from the results; this avoids circular implications
+        new_results.discard(tag)
+        results.update(new_results)
+    return results
 
 
 def _bytes_to_iec_units(b: int, pluralize=True, mag_0_name='byte', precision=1) -> Tuple[float, str]:
