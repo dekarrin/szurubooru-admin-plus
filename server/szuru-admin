@@ -316,7 +316,7 @@ def mass_tag(
 
         if count == len(posts):
             break
-        
+
         vprint("Got different count of search than expected; re-trying to avoid concurrent modification...")
     vprint("Total: {:d}".format(count))
 
@@ -331,6 +331,30 @@ def mass_tag(
     # for each candidate, perform following steps:
     #  - if adding tags, make list of all to be added and associate to id.
     #  - if removing tags, make list of all to be removed that are present and associate to id.
+    id_to_new_tags_map = {}
+    id_to_post_map = {}
+    id_to_changes = {}
+    for post in posts:
+        p: model.Post = post
+        id_to_post_map[p.post_id] = p
+
+        new_tags = []
+        for t in p.tags:
+            if removal:
+                if all(n.name not in tags for n in t.names):
+                    new_tags.append(t)
+            else:
+                new_tags.append(t.first_name)
+        if not removal:
+            for tname in tags:
+                if tname not in new_tags:
+                    new_tags.append(tname)
+
+        id_to_new_tags_map[p.post_id] = new_tags
+
+    vseparate()
+
+    # print out any modifications before actually applying them
 
 
 def mass_move_tags(search: str, new_cat: str, from_cat: str, verbose: bool, apply: bool) -> None:
