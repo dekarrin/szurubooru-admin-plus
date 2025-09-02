@@ -357,11 +357,11 @@ def mass_tag(
         if len(changes) > 0:
             changed_posts[p.post_id] = (p, new_tags, changes)
             op = 'Add' if not removal else 'Remove'
-            print(f"{id_to_link(p.post_id)}: {op} {', '.join(f'`{t}`' for t in changes)}")
+            print(f"{id_to_link(p.post_id)} - {op} {', '.join(f'`{t}`' for t in changes)}")
 
             postfuncs.update_post_tags(p, new_tags)
         else:
-            print(f"{id_to_link(p.post_id)}: No changes")
+            print(f"{id_to_link(p.post_id)} - No changes")
     
     if len(changed_posts) < 1:
         print("No posts to modify")
