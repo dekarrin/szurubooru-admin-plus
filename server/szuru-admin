@@ -354,6 +354,7 @@ def mass_tag(
                     changes.append(tname)
                     existing_set.add(tname)
 
+        changes.sort()
         if len(changes) > 0:
             changed_posts[p.post_id] = (p, new_tags, changes)
             op = 'Add' if not removal else 'Remove'
