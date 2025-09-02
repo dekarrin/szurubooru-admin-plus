@@ -243,6 +243,27 @@ def mass_rename_tags(old: str, new: str, category: str, verbose: bool, apply: bo
     print("WARNING: Active servers will not see changes until a client mutates something.")
 
 
+def mass_tag(
+        search: str,
+        tags: List[str],
+        removal: bool=False,
+        implications: bool=False,
+        verbose: bool=False,
+        apply: bool=False) -> None:
+    """
+    Tags posts that match pattern with the given tags (or removes them if
+    removal is set to True). If implications is True, the tags in the tags list
+    passed to this function will have tags they imply added to the list of tags
+    to add/remove before the operation is applied.
+
+    If no tags are given, this functions as a simple search to list posts that
+    match the pattern.
+
+    Not actually applied unless apply is set to True.
+    """
+    pass
+
+
 def mass_move_tags(search: str, new_cat: str, from_cat: str, verbose: bool, apply: bool) -> None:
     """
     Update the category of all tags matching the search pattern within the
@@ -524,6 +545,44 @@ def main() -> None:
         help='Enable verbose output',
     )
 
+    tag_parser = subparsers.add_parser(
+        'tag',
+        help="Mass tag or untag posts matching a search pattern.",
+    )
+    tag_parser.add_argument(
+        "search",
+        help="The search expression to match posts against, in szurubooru tag-search syntax. Supports additional keyword 'in_cat:X' that may be used in expression to specify all tags that are in category X; it will be replaced with an OR'd list of all tags in that category before being passed to szurubooru.",
+    )
+    tag_parser.add_argument(
+        'tags',
+        nargs='*',
+        help="The tags to add or remove from matching posts.",
+    )
+    tag_parser.add_argument(
+        "--delete",
+        "-d",
+        action="store_true",
+        help="Remove the given tags from matching posts instead of adding them.",
+    )
+    tag_parser.add_argument(
+        "--imply",
+        "-i",
+        action="store_true",
+        help="Also add/remove all tags implied by the given tags.",
+    )
+    tag_parser.add_argument(
+        '--apply',
+        '-a',
+        action='store_true',
+        help="Actually apply the changes. If not specified, only a simulation is run and no changes are made.",
+    )
+    tag_parser.add_argument(
+        '--verbose',
+        '-v',
+        action='store_true',
+        help='Enable verbose output',
+    )
+
     command = parser_top.parse_args()
 
     try:
@@ -551,6 +610,15 @@ def main() -> None:
             )
         elif command.subcommand == 'resync':
             resync(command.id, command.verbose)
+        elif command.subcommand == 'tag':
+            mass_tag(
+                command.search,
+                command.tags,
+                command.delete,
+                command.imply,
+                command.verbose,
+                command.apply,
+            )
     except errors.BaseError as e:
         print(e, file=stderr)
 
