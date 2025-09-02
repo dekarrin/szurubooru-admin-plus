@@ -283,9 +283,9 @@ def mass_tag(
                 continue
 
             all_impls = _get_recursive_implications(t)
-            as_str = ', '.join(f'`{impl}`' for impl in all_impls)
+            as_str = ', '.join(f'`{impl.first_name}`' for impl in all_impls)
 
-            vprint(f"`{tname!r}` -> {as_str}")
+            vprint(f"`{tname}` -> {as_str}")
             for implied_tag in all_impls:
                 if implied_tag.first_name not in tags_with_implied:
                     all_added.add(implied_tag.first_name)
@@ -296,7 +296,7 @@ def mass_tag(
 
         if len(all_added) > 0:
             vprint(f"{_p(len(all_added), 'additional tag')} will be {op} by implication")
-            print("Implied tag(s): {:s}".format(', '.join('`{}`'.format(t) for t in sorted(list(all_added)))))
+            print("Implied tag(s): {:s}".format(', '.join(f'`{t.first_name}`' for t in sorted(list(all_added)))))
         else:
             vprint("Found no additional tags by implication")
             print("Implied tag(s): (none)")
