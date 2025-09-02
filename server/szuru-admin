@@ -283,7 +283,7 @@ def mass_tag(
                 continue
 
             all_impls = _get_recursive_implications(t)
-            as_str = ', '.join('`{impl}`' for impl in all_impls)
+            as_str = ', '.join(f'`{impl}`' for impl in all_impls)
 
             vprint(f"`{tname!r}` -> {as_str}")
             for implied_tag in all_impls:
