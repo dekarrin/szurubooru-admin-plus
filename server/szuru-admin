@@ -307,9 +307,14 @@ def mass_tag(
     vprint("Search with {!r}".format(search))
     vseparate()
     count, posts = searcher.execute(search, 0, 10)
+
+    def id_to_link(id):
+        return f"{config.config['domain']}/post/{id}"
+    
     for post in posts:
         p: model.Post = post
-        vprint(f"Matched post {p.post_id}")
+        
+        vprint(f"Matched post {p.post_id} - {id_to_link(p.post_id)}")
 
     # for each candidate, perform following steps:
     #  - if adding tags, make list of all to be added and associate to id.
