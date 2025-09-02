@@ -12,7 +12,7 @@ import math
 from argparse import ArgumentParser
 from getpass import getpass
 from sys import stderr
-from typing import Any, Iterable, Union, Tuple, Callable, List
+from typing import Any, Iterable, Union, Tuple, Callable, List, Set
 
 from szurubooru import config, db, errors, model
 from szurubooru import search as szurusearch
@@ -692,7 +692,7 @@ def _vprinters(verbose: bool) -> Tuple[Callable, Callable]:
     return vprint, vseparate
 
 
-def _get_recursive_implications(tag: model.Tag, results: set[model.Tag]=None) -> set[model.Tag]:
+def _get_recursive_implications(tag: model.Tag, results: Set[model.Tag]=None) -> Set[model.Tag]:
     if results is None:
         results = set()
 
@@ -732,7 +732,7 @@ def _bytes_to_iec_units(b: int, pluralize=True, mag_0_name='byte', precision=1) 
     Precision by default will be one floating point decimal, but can be changed
     by setting the parameter precision to a different value.
     """
-    unit_names = ['byte', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB']
+    unit_names = [mag_0_name, 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB']
     mag = int(math.log(b, 1024))
     if mag >= len(unit_names):
         mag = len(unit_names) - 1
