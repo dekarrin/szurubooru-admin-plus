@@ -240,8 +240,7 @@ def mass_rename_tags(old: str, new: str, category: str, verbose: bool, apply: bo
     else:
         db.get_session().commit()
         print("All changes applied")
-    
-    print("WARNING: Active servers will not see changes until a client mutates something.")
+        print("WARNING: Active servers will not see changes until a client mutates something.")
 
 
 
@@ -300,7 +299,9 @@ def mass_tag(
         else:
             vprint("Found no additional tags by implication")
             print("Implied tag(s): (none)")
-
+    else:
+        tags = sorted(list(set(tags)))
+    
     vseparate()
 
     # do search of posts to get candidates
@@ -325,36 +326,56 @@ def mass_tag(
     
     for post in posts:
         p: model.Post = post
-        
         vprint(f"Matched post {p.post_id} - {id_to_link(p.post_id)}")
 
-    # for each candidate, perform following steps:
-    #  - if adding tags, make list of all to be added and associate to id.
-    #  - if removing tags, make list of all to be removed that are present and associate to id.
-    id_to_new_tags_map = {}
-    id_to_post_map = {}
-    id_to_changes = {}
+    changed_posts = {} # id -> (post, new_tags, mods)
     for post in posts:
         p: model.Post = post
-        id_to_post_map[p.post_id] = p
 
+        changes = []
         new_tags = []
+
+        existing_set = set()
+
         for t in p.tags:
             if removal:
                 if all(n.name not in tags for n in t.names):
-                    new_tags.append(t)
+                    new_tags.append(t.first_name)
+                else:
+                    changes.append(t.first_name)
             else:
                 new_tags.append(t.first_name)
+                existing_set.update(n.name for n in t.names)
+        
         if not removal:
             for tname in tags:
-                if tname not in new_tags:
+                if tname not in existing_set:
                     new_tags.append(tname)
+                    changes.append(tname)
+                    existing_set.add(tname)
 
-        id_to_new_tags_map[p.post_id] = new_tags
+        if len(changes) > 0:
+            changed_posts[p.post_id] = (p, new_tags, changes)
+            op = 'Add' if not removal else 'Remove'
+            print(f"{id_to_link(p.post_id)}: {op} {', '.join(f'`{t}`' for t in changes)}")
 
-    vseparate()
+            postfuncs.update_post_tags(p, new_tags)
+        else:
+            print(f"{id_to_link(p.post_id)}: No changes")
+    
+    if len(changed_posts) < 1:
+        print("No posts to modify")
+        return
 
-    # print out any modifications before actually applying them
+    op = 'addition' if not removal else 'removal'
+    print(f"Tag {op} will be applied to {len(changed_posts)} out of {_p(posts, 'post')} matched")
+
+    if not apply:
+        print("No changes applied; if above looks correct, re-run with --apply")
+    else:
+        db.get_session().commit()
+        print("All changes applied")
+        print("WARNING: Active servers might not see changes until a client mutates something.")
 
 
 def mass_move_tags(search: str, new_cat: str, from_cat: str, verbose: bool, apply: bool) -> None:
@@ -452,8 +473,7 @@ def mass_move_tags(search: str, new_cat: str, from_cat: str, verbose: bool, appl
     else:
         db.get_session().commit()
         print("All changes applied")
-    
-    print("WARNING: Active servers will not see changes until a client mutates something.")
+        print("WARNING: Active servers will not see changes until a client mutates something.")
 
 
 def reset_password(username: str) -> None:
