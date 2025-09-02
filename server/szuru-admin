@@ -690,7 +690,7 @@ def _p(count: Union[int, Iterable[Any]], root: str, plural_suf: str='s', singula
 
 def _vprinters(verbose: bool) -> Tuple[Callable, Callable]:
     vprint = print if verbose else lambda *args, **kwargs: None
-    vseparate = lambda: vprint("-", 60)
+    vseparate = lambda: vprint("-"*60)
     return vprint, vseparate
 
 
