@@ -337,6 +337,23 @@ def mass_tag(
     for post in posts:
         p: model.Post = post
         vprint(f"Matched post {p.post_id} - {id_to_link(p.post_id)}")
+
+    vseparate()
+
+    if apply and len(changed_posts) > 0 and not removal and len(tags_to_create) > 0:
+        if category is not None and category != '':
+            vprint(f"Querying for tags in category {category!r}")
+            tagcat = tagcatfuncs.get_category_by_name(category, False)
+        else:
+            vprint("Get default category for creation of tags")
+            tagcat = tagcatfuncs.get_default_category()
+
+        if apply:
+            for t in tags_to_create:
+                tagfuncs.create_tag([t], tagcat.name, [], [])
+            vprint("New tags created")
+
+    vseparate()
     
     changed_posts = {} # id -> (post, new_tags, mods)
     for post in posts:
@@ -378,24 +395,8 @@ def mass_tag(
         print("No posts to modify")
         return
     
-
-    vseparate()
-
-    if len(changed_posts) > 0 and not removal and len(tags_to_create) > 0:
-        if category is not None and category != '':
-            vprint(f"Querying for tags in category {category!r}")
-            tagcat = tagcatfuncs.get_category_by_name(category, False)
-        else:
-            vprint("Get default category for creation of tags")
-            tagcat = tagcatfuncs.get_default_category()
-
+    if len(tags_to_create) > 0 and not removal:
         print("New tags to create: " + ', '.join(f'`{t}`' for t in tags_to_create))
-        if apply:
-            for t in tags_to_create:
-                tagfuncs.create_tag([t], tagcat.name, [], [])
-            
-        db.get_session().commit()
-        print("New tags created")
 
     op = 'addition' if not removal else 'removal'
     print(f"Tag {op} will be applied to {len(changed_posts)} out of {_p(posts, 'post')} matched")
