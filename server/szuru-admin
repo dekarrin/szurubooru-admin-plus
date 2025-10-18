@@ -353,6 +353,8 @@ def mass_tag(
         p: model.Post = post
         vprint(f"Matched post {p.post_id} - {id_to_link(p.post_id)}")
     
+    vseparate()
+    
     post_msgs = []
     changed_posts = {} # id -> (post, new_tags, mods)
     for post in posts:
