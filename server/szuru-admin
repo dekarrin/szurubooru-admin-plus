@@ -541,7 +541,7 @@ def mass_move_tags(search: str, new_cat: str, from_cat: str, verbose: bool, appl
         print(f"MOVE {t.first_name!r} to {new_clause}category {new_cat_name!r}")
         if apply:
             db.session.add(t)
-            updated_tags.add(t)
+            updated_tags.append(t)
     if apply:
         db.session.flush()
         for t in updated_tags:
