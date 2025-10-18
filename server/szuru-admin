@@ -35,8 +35,6 @@ def get_system_user():
         u.rank = model.User.RANK_ADMINISTRATOR
         db.get_session().add(u)
         db.get_session().flush()
-        u = userfuncs.try_get_user_by_name(sys_user_name)
-        snapshots.create(u, auth_user=u)
     return u
 
 
