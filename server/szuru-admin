@@ -335,7 +335,7 @@ def mass_tag(
     for post in posts:
         p: model.Post = post
         vprint(f"Matched post {p.post_id} - {id_to_link(p.post_id)}")
-
+    
     changed_posts = {} # id -> (post, new_tags, mods)
     for post in posts:
         p: model.Post = post
@@ -376,8 +376,10 @@ def mass_tag(
         print("No posts to modify")
         return
     
-    if not removal and len(new_tags) > 0:
 
+    vseparate()
+
+    if len(changed_posts) > 0 and not removal and len(new_tags) > 0:
         if category is not None and category != '':
             vprint(f"Querying for tags in category {category!r}")
             tagcat = tagcatfuncs.get_category_by_name(category, False)
@@ -389,7 +391,6 @@ def mass_tag(
         if apply:
             for t in new_tags:
                 tagfuncs.create_tag([t], tagcat.name, [], [])
-            
 
     op = 'addition' if not removal else 'removal'
     print(f"Tag {op} will be applied to {len(changed_posts)} out of {_p(posts, 'post')} matched")
