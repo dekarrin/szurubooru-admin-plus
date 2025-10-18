@@ -807,7 +807,7 @@ def main() -> None:
             )
         elif command.subcommand == 'resync':
             resync(command.id, command.verbose)
-        elif command.subcommand == 'mass-tag':
+        elif command.subcommand == 'tag':
             mass_tag(
                 command.search,
                 command.tags,
