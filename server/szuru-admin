@@ -397,8 +397,6 @@ def mass_tag(
     
     tagcat = None
     if len(tags_to_create) > 0 and not removal:
-        print("New tags to create: " + ', '.join(f'`{t}`' for t in tags_to_create))
-        vseparate()
         if category is not None and category != '':
             vprint(f"Querying for category {category!r}...")
             tagcat = tagcatfuncs.get_category_by_name(category, False)
@@ -406,7 +404,7 @@ def mass_tag(
             vprint("Querying for default category for creation of tags...")
             tagcat = tagcatfuncs.get_default_category()
         vseparate()
-        print(f"(creating in category {tagcat.name!r})")
+        print("New tags to create in category {tagcat.name!r}" + ', '.join(f'`{t}`' for t in tags_to_create))
 
     op = 'addition' if not removal else 'removal'
     print(f"Tag {op} will be applied to {len(changed_posts)} out of {_p(posts, 'post')} matched")
@@ -436,7 +434,7 @@ def mass_tag(
             p.last_edit_time = datetime.utcnow()
             updated_posts.append(p)
         db.get_session().flush()
-        
+
         for p in updated_posts:
             snapshots.modify(p, get_system_user())
 
