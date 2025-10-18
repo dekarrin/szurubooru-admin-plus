@@ -116,7 +116,7 @@ def mass_rename_tags(old: str, new: str, preserve: bool, category: str, verbose:
     vprint(f"Found {_p(tag_list, 'tag')}")
     vseparate()
     vprint(f"Filtering by tag first names matching {old_pat.pattern!r}")
-    vprint(f"Replacing with {new!r}")
+    vprint(f"Replacing with '{new}'")
 
     for t in tag_list:
         m = old_pat.search(t.first_name)
@@ -196,6 +196,7 @@ def mass_rename_tags(old: str, new: str, preserve: bool, category: str, verbose:
         vprint("All checks done; applying...")
     else:
         vprint("All checks done; listing changes without applying...")
+    vseparate()
 
     for act in actions:
         action_type, tag, new_name, target = act
