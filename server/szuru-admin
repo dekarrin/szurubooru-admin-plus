@@ -402,7 +402,7 @@ def mass_tag(
         for t in tags_to_create:
             vprint(f"Create tag {t!r}...")
             new_tag = tagfuncs.create_tag([t], tagcat.name, [], [])
-            db.session.merge(new_tag)
+            #db.session.merge(new_tag)
         db.get_session().commit()
 
         for pid in changed_posts:
