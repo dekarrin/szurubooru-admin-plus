@@ -434,7 +434,7 @@ def mass_tag(
             vprint(f"Update post {pid}...")
             p, new_tags, _ = changed_posts[pid]
             postfuncs.update_post_tags(p, new_tags)
-            p.last_edit_time = datetime.utcnow()
+            p.last_edit_time = datetime.datetime.utcnow()
             updated_posts.append(p)
         db.get_session().flush()
 
