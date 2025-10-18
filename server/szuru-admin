@@ -738,7 +738,7 @@ def main() -> None:
     )
 
     tag_parser = subparsers.add_parser(
-        'mass-tag',
+        'tag',
         help="Mass tag or untag posts matching a search pattern.",
     )
     tag_parser.add_argument(
