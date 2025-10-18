@@ -402,7 +402,7 @@ def mass_tag(
     else:
         vseparate()
         for t in tags_to_create:
-            vprint("Create tag {t!r}...")
+            vprint(f"Create tag {t!r}...")
             tagfuncs.create_tag([t], tagcat.name, [], [])
         vprint("New tags created")
 
