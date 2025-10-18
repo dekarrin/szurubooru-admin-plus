@@ -401,18 +401,11 @@ def mass_tag(
         print("No changes applied; if above looks correct, re-run with --apply")
     else:
         vseparate()
-        if apply and len(changed_posts) > 0 and not removal and len(tags_to_create) > 0:
-            if category is not None and category != '':
-                vprint(f"Querying for category {category!r}...")
-                tagcat = tagcatfuncs.get_category_by_name(category, False)
-            else:
-                vprint("Querying for default category for creation of tags...")
-                tagcat = tagcatfuncs.get_default_category()
+        for t in tags_to_create:
+            vprint("Create tag {t!r}...")
+            tagfuncs.create_tag([t], tagcat.name, [], [])
+        vprint("New tags created")
 
-            if apply:
-                for t in tags_to_create:
-                    tagfuncs.create_tag([t], tagcat.name, [], [])
-                vprint("New tags created")
         for pid in changed_posts:
             p, new_tags, _ = changed_posts[pid]
             postfuncs.update_post_tags(p, new_tags)
