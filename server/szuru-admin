@@ -370,8 +370,6 @@ def mass_tag(
             changed_posts[p.post_id] = (p, new_tags, changes)
             op = 'Add' if not removal else 'Remove'
             post_msgs.append(f"{id_to_link(p.post_id)} - {op} {', '.join(f'`{t}`' for t in changes)}")
-
-            postfuncs.update_post_tags(p, new_tags)
         else:
             post_msgs.append(f"{id_to_link(p.post_id)} - No changes")
     
@@ -404,7 +402,6 @@ def mass_tag(
         for t in tags_to_create:
             vprint(f"Create tag {t!r}...")
             tagfuncs.create_tag([t], tagcat.name, [], [])
-            db.get_session().commit()
         vprint("New tags created")
 
         for pid in changed_posts:
