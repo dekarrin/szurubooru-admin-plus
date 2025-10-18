@@ -276,12 +276,11 @@ def mass_tag(
     tags_to_create = set()
     tags_with_implied = set(tags)
     for tname in tags:
-        vprint(f'`{tname}`...')
         t = tagfuncs.try_get_tag_by_name(tname)
         if not t:
             # no implications if the tag doesn't exist; not an error
             vprint(f"{tname!r} does not exist" + ("; skipping implications check" if implications else ""))
-            tags_to_create.add(t)
+            tags_to_create.add(tname)
             continue
 
         vprint(f'Tag `{tname}` exists' + ("; running implications check..." if implications else ""))
