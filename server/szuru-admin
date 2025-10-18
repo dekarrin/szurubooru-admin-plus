@@ -283,7 +283,7 @@ def mass_tag(
             tags_to_create.add(tname)
             continue
 
-        vprint(f'Tag `{tname}` exists' + ("; running implications check..." if implications else ""))
+        vprint(f'Tag {tname!r} exists' + ("; running implications check..." if implications else ""))
 
         if implications:
             if len(t.implications) < 1:
@@ -291,9 +291,9 @@ def mass_tag(
                 continue
 
             all_impls = _get_recursive_implications(t)
-            as_str = ', '.join(f'`{impl.first_name}`' for impl in all_impls)
+            as_str = ', '.join(f'{impl.first_name!r}' for impl in all_impls)
 
-            vprint(f"`{tname}` -> {as_str}")
+            vprint(f"{tname!r} -> {as_str}")
             for implied_tag in all_impls:
                 if implied_tag.first_name not in tags_with_implied:
                     all_added.add(implied_tag.first_name)
