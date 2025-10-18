@@ -756,7 +756,7 @@ def main() -> None:
                 command.tags,
                 command.delete,
                 command.imply,
-                command.cateogry,
+                command.category,
                 command.verbose,
                 command.apply,
             )
