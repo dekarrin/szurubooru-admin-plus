@@ -223,6 +223,7 @@ def mass_rename_tags(old: str, new: str, category: str, verbose: bool, apply: bo
                         all_new_names.append(n.name)
 
                 vprint(f"Merging {all_t_names!r} into {all_target_names!r}")
+                vprint(f"(={all_new_names!r}")
                 tagfuncs.merge_tags(tag, target)
                 snapshots.merge(tag, target, get_system_user())
                 db.get_session().flush()
