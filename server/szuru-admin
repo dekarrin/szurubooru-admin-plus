@@ -280,11 +280,11 @@ def mass_tag(
         t = tagfuncs.try_get_tag_by_name(tname)
         if not t:
             # no implications if the tag doesn't exist; not an error
-            vprint(f"`{tname!r}` does not exist" + "; skipping implications check" if implications else "")
+            vprint(f"`{tname!r}` does not exist" + ("; skipping implications check" if implications else ""))
             new_tags.add(t)
             continue
 
-        vprint(f'Tag `{tname}` exists' + "; running implications check..." if implications else "")
+        vprint(f'Tag `{tname}` exists' + ("; running implications check..." if implications else ""))
 
         if implications:
             if len(t.implications) < 1:
