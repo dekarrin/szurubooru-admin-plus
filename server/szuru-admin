@@ -21,6 +21,7 @@ from szurubooru.func import posts as postfuncs
 from szurubooru.func import users as userfuncs
 from szurubooru.func import tag_categories as tagcatfuncs
 from szurubooru.func import tags as tagfuncs
+from szurubooru.func import snapshots
 
 
 def resync(ids: List[int], verbose: bool) -> None:
@@ -39,6 +40,8 @@ def resync(ids: List[int], verbose: bool) -> None:
 
         # chuck it in
         postfuncs.update_post_content(p, fcontent)
+        db.get_session().flush()
+        snapshots.modify(p)
         
         print("Will refresh content data for post {:d}...".format(post_id))
     
