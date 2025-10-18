@@ -221,7 +221,7 @@ def mass_rename_tags(old: str, new: str, preserve: bool, category: str, verbose:
                 for n in tag.names:
                     all_t_names.append(n.name)
                     # exclude the new tag name (and the original one unless preserve is specified)
-                    if (n.name.lower() != tag.first_name.lower() or preserve) and n.name.lower() != new_name.lower():
+                    if (preserve or n.name.lower() != tag.first_name.lower()) and n.name.lower() != new_name.lower():
                         all_new_names.append(n.name)
 
                 vprint(f"Merging {all_t_names!r} into {all_target_names!r}")
@@ -242,7 +242,7 @@ def mass_rename_tags(old: str, new: str, preserve: bool, category: str, verbose:
                 all_new_names.append(new_name)
 
                 for n in tag.names:
-                    if n.name.lower() != tag.first_name.lower():
+                    if preserve or n.name.lower() != tag.first_name.lower():
                         all_new_names.append(n.name)
                 tagfuncs.update_tag_names(tag, all_new_names)
                 db.get_session().flush()
