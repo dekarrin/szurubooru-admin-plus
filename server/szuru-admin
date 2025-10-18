@@ -15,6 +15,7 @@ from sys import stderr
 from typing import Any, Iterable, Union, Tuple, Callable, List, Set
 import random
 import string
+import datetime
 
 from szurubooru import config, db, errors, model
 from szurubooru import search as szurusearch
@@ -226,7 +227,7 @@ def mass_rename_tags(old: str, new: str, category: str, verbose: bool, apply: bo
                 tagfuncs.merge_tags(tag, target)
                 snapshots.merge(tag, target, get_system_user())
                 db.get_session().flush()
-                
+
                 vprint(f"Update to: {all_new_names!r}")
                 tagfuncs.update_tag_names(target, all_new_names)
                 db.get_session().flush()
@@ -394,6 +395,7 @@ def mass_tag(
     for msg in post_msgs:
         print(msg)
     
+    tagcat = None
     if len(tags_to_create) > 0 and not removal:
         print("New tags to create: " + ', '.join(f'`{t}`' for t in tags_to_create))
         vseparate()
@@ -413,16 +415,30 @@ def mass_tag(
         print("No changes applied; if above looks correct, re-run with --apply")
     else:
         vseparate()
-        for t in tags_to_create:
-            vprint(f"Create tag {t!r}...")
-            new_tag = tagfuncs.create_tag([t], tagcat.name, [], [])
-            db.session.merge(new_tag)
-        db.get_session().flush()
 
+        if len(tags_to_create) > 0 and not removal:
+            created_tags = []
+            for t in tags_to_create:
+                vprint(f"Create tag {t!r}...")
+                new_tag = tagfuncs.create_tag([t], tagcat.name, [], [])
+                created_tags.append(new_tag)
+                db.get_session().add(new_tag)
+            db.get_session().flush()
+        
+            for t in created_tags:
+                snapshots.create(t, get_system_user())
+
+        updated_posts = []
         for pid in changed_posts:
             vprint(f"Update post {pid}...")
             p, new_tags, _ = changed_posts[pid]
             postfuncs.update_post_tags(p, new_tags)
+            p.last_edit_time = datetime.utcnow()
+            updated_posts.append(p)
+        db.get_session().flush()
+        
+        for p in updated_posts:
+            snapshots.modify(p, get_system_user())
 
         db.get_session().commit()
         print("Post changes applied")
