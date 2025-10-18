@@ -41,7 +41,7 @@ def resync(ids: List[int], verbose: bool) -> None:
         # chuck it in
         postfuncs.update_post_content(p, fcontent)
         db.get_session().flush()
-        snapshots.modify(p)
+        snapshots.modify(p, auth_user=None)
         
         print("Will refresh content data for post {:d}...".format(post_id))
     
