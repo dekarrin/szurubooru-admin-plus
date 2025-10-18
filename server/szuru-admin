@@ -64,7 +64,7 @@ def resync(ids: List[int], verbose: bool) -> None:
     print("Successfully updated all content")
 
 
-def mass_rename_tags(old: str, new: str, category: str, verbose: bool, apply: bool) -> None:
+def mass_rename_tags(old: str, new: str, preserve: bool, category: str, verbose: bool, apply: bool) -> None:
     """
     Rename all tags matching the old pattern to the new pattern. Uses regular
     expressions for matching and replacing. Not actually applied unless apply
@@ -219,8 +219,8 @@ def mass_rename_tags(old: str, new: str, category: str, verbose: bool, apply: bo
                     all_target_names.append(n.name)
                 for n in tag.names:
                     all_t_names.append(n.name)
-                    # exclude the original name of the tag and the new name
-                    if n.name.lower() != tag.first_name.lower() and n.name.lower() != new_name.lower():
+                    # exclude the new tag name (and the original one unless preserve is specified)
+                    if (n.name.lower() != tag.first_name.lower() or preserve) and n.name.lower() != new_name.lower():
                         all_new_names.append(n.name)
 
                 vprint(f"Merging {all_t_names!r} into {all_target_names!r}")
@@ -678,6 +678,12 @@ def main() -> None:
         help="The category of tags to limit the renaming to. If not specified, all tags are considered candidates for renaming.",
     )
     rename_tags_parser.add_argument(
+        "--preserve",
+        "-p",
+        action="store_true",
+        help="Preserve the changed tag as an alias on the newly-named one.",
+    )
+    rename_tags_parser.add_argument(
         "--apply",
         "-a",
         action="store_true",
@@ -793,6 +799,7 @@ def main() -> None:
             mass_rename_tags(
                 command.pattern,
                 command.replacement,
+                command.preserve,
                 command.category,
                 command.verbose,
                 command.apply,
