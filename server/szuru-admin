@@ -403,6 +403,7 @@ def mass_tag(
             vprint(f"Create tag {t!r}...")
             new_tag = tagfuncs.create_tag([t], tagcat.name, [], [])
             db.session.merge(new_tag)
+        db.get_session().commit()
 
         for pid in changed_posts:
             vprint(f"Update post {pid}...")
