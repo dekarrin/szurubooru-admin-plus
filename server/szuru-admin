@@ -406,7 +406,7 @@ def mass_tag(
 
         for pid in changed_posts:
             p, new_tags, _ = changed_posts[pid]
-            db.get_session().expire(p)
+            db.get_session().refresh(p)
             postfuncs.update_post_tags(p, new_tags)
 
         db.get_session().commit()
