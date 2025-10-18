@@ -249,6 +249,7 @@ def mass_tag(
         tags: List[str],
         removal: bool=False,
         implications: bool=False,
+        category: str='',
         verbose: bool=False,
         apply: bool=False) -> None:
     """
@@ -261,22 +262,28 @@ def mass_tag(
     match the pattern.
 
     Not actually applied unless apply is set to True.
+
+    If category is given and is not empty or None, newly-created tags will be
+    in that category; otherwise they will be in the default.
     """
     # get verbose printers
     vprint, vseparate = _vprinters(verbose)
 
-    # apply implications to the given tags if needed
-    if implications:
-        all_added = set()
-        vprint("Checking tags for implications...")
-        tags_with_implied = set(tags)
-        for tname in tags:
-            t = tagfuncs.try_get_tag_by_name(tname)
-            if not t:
-                # no implications if the tag doesn't exist; not an error
-                vprint(f"`{tname!r}` does not exist; skipping")
-                continue
+    # check if any tags need to be created, and/or apply implications to the
+    # given tags are needed
+    all_added = set()
+    vprint("Checking tags for tag existence and implications...")
+    new_tags = set()
+    tags_with_implied = set(tags)
+    for tname in tags:
+        t = tagfuncs.try_get_tag_by_name(tname)
+        if not t:
+            # no implications if the tag doesn't exist; not an error
+            vprint(f"`{tname!r}` does not exist" + "; skipping implications check" if implications else "")
+            new_tags.add(t)
+            continue
 
+        if implications:
             if len(t.implications) < 1:
                 vprint(f"`{tname!r}` has no implications")
                 continue
@@ -290,6 +297,7 @@ def mass_tag(
                     all_added.add(implied_tag.first_name)
                 tags_with_implied.add(implied_tag.first_name)
 
+    if implications:
         tags = sorted(list(tags_with_implied))
         op = 'added' if not removal else 'removed'
 
@@ -367,6 +375,21 @@ def mass_tag(
     if len(changed_posts) < 1:
         print("No posts to modify")
         return
+    
+    if not removal and len(new_tags) > 0:
+
+        if category is not None and category != '':
+            vprint(f"Querying for tags in category {category!r}")
+            tagcat = tagcatfuncs.get_category_by_name(category, False)
+        else:
+            vprint("Get default category for creation of tags")
+            tagcat = tagcatfuncs.get_default_category()
+
+        print("New tags to create: " + ', '.join(f'`{t}`' for t in new_tags))
+        if apply:
+            for t in new_tags:
+                tagfuncs.create_tag([t], tagcat.name, [], [])
+            
 
     op = 'addition' if not removal else 'removal'
     print(f"Tag {op} will be applied to {len(changed_posts)} out of {_p(posts, 'post')} matched")
@@ -683,6 +706,11 @@ def main() -> None:
         help="Also add/remove all tags implied by the given tags.",
     )
     tag_parser.add_argument(
+        "--category",
+        "-c",
+        help="The category that new tags are created in. If not specified, they are created in the default category.",
+    )
+    tag_parser.add_argument(
         '--apply',
         '-a',
         action='store_true',
@@ -728,6 +756,7 @@ def main() -> None:
                 command.tags,
                 command.delete,
                 command.imply,
+                command.cateogry,
                 command.verbose,
                 command.apply,
             )
