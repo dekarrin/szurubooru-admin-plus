@@ -13,6 +13,8 @@ from argparse import ArgumentParser
 from getpass import getpass
 from sys import stderr
 from typing import Any, Iterable, Union, Tuple, Callable, List, Set
+import random
+import string
 
 from szurubooru import config, db, errors, model
 from szurubooru import search as szurusearch
@@ -22,6 +24,18 @@ from szurubooru.func import users as userfuncs
 from szurubooru.func import tag_categories as tagcatfuncs
 from szurubooru.func import tags as tagfuncs
 from szurubooru.func import snapshots
+
+
+def get_system_user():
+    sys_user_name = 'szuru-admin-script'
+    u = userfuncs.try_get_user_by_name(sys_user_name)
+    if u is None:
+        password = ''.join(random.choices(string.ascii_letters + string.digits, k=25))
+        u = userfuncs.create_user(sys_user_name, password, sys_user_name + '@system.user')
+        u.rank = model.User.RANK_ADMINISTRATOR
+        db.get_session().flush()
+        snapshots.create(u, auth_user=u)
+    return u
 
 
 def resync(ids: List[int], verbose: bool) -> None:
@@ -41,7 +55,7 @@ def resync(ids: List[int], verbose: bool) -> None:
         # chuck it in
         postfuncs.update_post_content(p, fcontent)
         db.get_session().flush()
-        snapshots.modify(p, auth_user=None)
+        snapshots.modify(p, auth_user=get_system_user())
         
         print("Will refresh content data for post {:d}...".format(post_id))
     
