@@ -393,6 +393,9 @@ def mass_tag(
         if apply:
             for t in tags_to_create:
                 tagfuncs.create_tag([t], tagcat.name, [], [])
+            
+        db.get_session().commit()
+        print("New tags created")
 
     op = 'addition' if not removal else 'removal'
     print(f"Tag {op} will be applied to {len(changed_posts)} out of {_p(posts, 'post')} matched")
@@ -401,7 +404,7 @@ def mass_tag(
         print("No changes applied; if above looks correct, re-run with --apply")
     else:
         db.get_session().commit()
-        print("All changes applied")
+        print("Post changes applied")
         print("WARNING: Active servers might not see changes until a client mutates something.")
 
 
