@@ -429,6 +429,8 @@ def mass_tag(
             for t in created_tags:
                 snapshots.create(t, get_system_user())
 
+            vseparate()
+
         updated_posts = []
         for pid in changed_posts:
             vprint(f"Update post {pid}...")
@@ -440,6 +442,8 @@ def mass_tag(
 
         for p in updated_posts:
             snapshots.modify(p, get_system_user())
+
+        vseparate()
 
         db.get_session().commit()
         print("Post changes applied")
