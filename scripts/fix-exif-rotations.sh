@@ -46,6 +46,26 @@ for f in "$@" ; do
 	if [ "$f" = "--id-range" ]
 	then
 		input_mode="$input_mode_id_range"
+	elif [ "$f" = "-h" -o "$f" = "--help" ]
+	then
+		echo "fix-exif-rotations.sh: Scans files for rotation with exiftran and fixes them."
+		echo ""
+		echo "usage: $0 file1 [file2 [...fileN]]"
+		echo "   OR  $0 --id-range OLDEST [NEWEST]"
+		echo ""
+		echo "Each file matched is checked for rotation and if EXIF tags specify it has"
+		echo "rotation, it is rotated to be correct and the EXIF tag updated. Then, the"
+		echo "affected posts are resynched in Szurubooru."
+		echo ""
+		echo "By default, the provided args are a list of files to be checked. This can be"
+		echo 'simplified by providing a glob such as ./data/posts/*.jpg.' 
+		echo ""
+		echo "If --id-range is provided as an option, the parameters are read as the numeric"
+		echo "post ID(s) of the OLDEST post (and optional the NEWEST as well). All posts"
+		echo "between OLDEST and NEWEST (inclusive) are scanned for rotation and resynched if"
+		echo "needed. If NEWEST is not given, it defaults to the highest possible post number"
+		echo "which exists."
+		exit
 	fi
 done
 
