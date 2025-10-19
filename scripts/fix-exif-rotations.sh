@@ -202,7 +202,10 @@ then
 
 	posts_path="$BOORU_DIR/data/posts"
 
-	find "$posts_path/." -mtime -$days -exec fix_and_append '{}' \;
+	for f in find "$posts_path/." -mtime -$days
+	do
+		fix_and_append "$f"
+	done
 else
 	for f in "$@" ; do
 		fix_and_append "$f"
