@@ -1,5 +1,7 @@
 #!/bin/bash
 
+BOORU_DIR="$(dirname "$0")"
+
 function fix_file() {
 	f="$1"
 	
@@ -24,10 +26,6 @@ function fix_file() {
 	exiftran -a -i -p "$f"
 	return 0
 }
-
-BOORU_DIR="$(dirname "$0")"
-
-files="$1"
 
 if [ $# -lt 1 ]
 then
@@ -56,8 +54,6 @@ id_arg_str=
 
 if [ "$input_mode" -eq "$input_mode_id_range" ]
 then
-	SCRIPT_DIR="$(dirname "$0")"
-
 	if [ "$#" -ne 3 -a "$#" -ne 2 ]
 	then
 		echo 'error: --id-range input mode requires exactly one or two args' >&2
@@ -91,7 +87,7 @@ then
 		fi
 	done
 
-	posts_path="$SCRIPT_DIR/data/posts"
+	posts_path="$BOORU_DIR/data/posts"
 	if [ -z "$newest" ]
 	then
 		# auto-detect highest post number
