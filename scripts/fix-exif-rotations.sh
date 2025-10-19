@@ -24,7 +24,8 @@ function fix_file() {
 	
 	echo "Rotating file for post ID $id..."
 	exiftran -a -i -p "$f"
-	return 0
+	rc=$?
+	return $rc
 }
 
 if [ $# -lt 1 ]
