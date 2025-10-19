@@ -146,9 +146,10 @@ then
 	do
 		# TODO: update this to nullglob / compgen -G check in future;
 		# this is fine for now since by the nature of szurubooru, this glob
-		# won't produce additional files.
-		f="$(echo "$posts_path/$pid"*)"
-		if [ "$f" = "$posts_path/$pid*" ]
+		# won't produce additional files. hopefully. unless it has multiple for
+		# post
+		f="$(echo "$posts_path/${pid}_"*)"
+		if [ "$f" = "$posts_path/${pid}_*" ]
 		then
 			continue
 		fi
