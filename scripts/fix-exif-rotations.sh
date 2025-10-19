@@ -163,6 +163,8 @@ then
 		oldest="$temp"
 	fi
 
+	echo "Checking posts with IDs between $oldest and $newest..."
+
 	for ((pid=oldest; pid<=newest; pid++))
 	do
 		# Use nullglob and arrays for robust glob matching
@@ -200,8 +202,12 @@ then
 
 	[ -n "$days" ] || days=1
 
+	echo "Checking posts $days or more days old..."
+
 	posts_path="$BOORU_DIR/data/posts"
 
+	# TODO: files probably dont have spaces in them but if they do this will
+	# need to be updated to account for that.
 	for f in $(find "$posts_path/." -mtime -$days)
 	do
 		fix_and_append "$f"
