@@ -40,7 +40,7 @@ def parse_args(parser_class=argparse.ArgumentParser):
 
     rename_tags_parser.add_argument(
         "pattern",
-        help="the old tag pattern to match, as a regular expression. re.find() is used to detect matches, and re.sub() is used to replace them. All instances of the pattern will be replaced via substitution.",
+        help="the old tag pattern to match, as a regular expression. re.search() is used to detect matches, and re.sub() is used to replace them. All instances of the pattern will be replaced via substitution.",
     )
     rename_tags_parser.add_argument(
         "replacement",
@@ -76,7 +76,7 @@ def parse_args(parser_class=argparse.ArgumentParser):
     )
     move_tags_parser.add_argument(
         "search",
-        help="The search pattern to match tags against. re.find() is used to detect matches.",
+        help="The search pattern to match tags against. re.search() is used to detect matches.",
     )
     move_tags_parser.add_argument(
         "new_category",
