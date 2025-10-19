@@ -38,6 +38,7 @@ releases are ./server/szuru-admin and ./server/szuru_admin_argparse.py. All
 other files under server/ should not be modified; they are included only as a
 reference.
 
+**Note:** The `admin-dist/szuru-admin.sh` script runs `szuru_admin_argparse.py` directly on the host to display help messages and argument-parsing errors without starting Docker. The environment variables `SZURU_PREPARSE_HELP_STATUS` and `SZURU_PREPARSE_ERROR_STATUS` control the exit codes for these cases. This pre-run behavior allows users to see help and error messages quickly and can be useful for scripting or debugging.
 ## Attribution and Licensing
 
 This project is derived from the source code of szurubooru v2.5, which is
