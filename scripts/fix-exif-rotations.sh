@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# fix-exif-rotations.sh: fixes exif rotations of posts. Use with -h for more
+# info.
+#
+# WARNING: DO NOT RUN THIS FROM THE REPO, it must be ./install.sh'd to the
+# target booru dir before executed.
+
 BOORU_DIR="$(dirname "$0")"
 
 function fix_file() {
@@ -61,7 +67,7 @@ for f in "$@" ; do
 		echo 'simplified by providing a glob such as ./data/posts/*.jpg.' 
 		echo ""
 		echo "If --id-range is provided as an option, the parameters are read as the numeric"
-		echo "post ID(s) of the OLDEST post (and optional the NEWEST as well). All posts"
+		echo "post ID(s) of the OLDEST post (and optionally the NEWEST as well). All posts"
 		echo "between OLDEST and NEWEST (inclusive) are scanned for rotation and resynched if"
 		echo "needed. If NEWEST is not given, it defaults to the highest possible post number"
 		echo "which exists."
