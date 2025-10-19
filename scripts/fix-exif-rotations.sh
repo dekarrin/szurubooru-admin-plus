@@ -177,7 +177,7 @@ then
 	if [ "$#" -ne 2 -a "$#" -ne 1 ]
 	then
 		echo 'error: must give one or zero args' >&2
-		echo "usage: $0 --age [DAYS-OLD]" >&2
+		echo "usage: $0 [DAYS-OLD]" >&2
 		exit 1
 	fi
 
