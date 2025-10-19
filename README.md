@@ -34,8 +34,8 @@ to only make changes necessary to update.
 The repository for szurubooru-admin-plus includes the entire server library from
 Szurubooru v2.5 to make it easy to develop against, located in ./server;
 however, the only server files under development in this repo and included in
-releases is ./server/szuru-admin and ./server/szuru_admin_argparse.py. All other
-files under server/ should not be modified; they are included only as a
+releases are ./server/szuru-admin and ./server/szuru_admin_argparse.py. All
+other files under server/ should not be modified; they are included only as a
 reference.
 
 ## Attribution and Licensing
