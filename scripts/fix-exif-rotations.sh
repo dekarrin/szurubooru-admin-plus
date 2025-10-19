@@ -61,7 +61,7 @@ for f in "$@" ; do
 		echo ""
 		echo "Each file matched is checked for rotation and if EXIF tags specify it has"
 		echo "rotation, it is rotated to be correct and the EXIF tag updated. Then, the"
-		echo "affected posts are resynched in Szurubooru."
+		echo "affected posts are resynced in Szurubooru."
 		echo ""
 		echo "By default, the provided args are a list of files to be checked. This can be"
 		echo 'simplified by providing a glob such as ./data/posts/*.jpg.' 
