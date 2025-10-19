@@ -78,6 +78,8 @@ def mass_rename_tags(old: str, new: str, preserve: bool, category: str, verbose:
     Rename all tags matching the old pattern to the new pattern. Uses regular
     expressions for matching and replacing. Not actually applied unless apply
     is set to True.
+
+    If preserve is given, the tag will keep its old name as an alias.
     """
     vprint = print if verbose else lambda *args, **kwargs: None
     def vseparate():
