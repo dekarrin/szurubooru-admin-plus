@@ -13,6 +13,10 @@ from argparse import ArgumentParser
 from getpass import getpass
 from sys import stderr
 from typing import Any, Iterable, Union, Tuple, Callable, List, Set
+import random
+import string
+import datetime
+import secrets
 
 from szurubooru import config, db, errors, model
 from szurubooru import search as szurusearch
@@ -21,6 +25,27 @@ from szurubooru.func import posts as postfuncs
 from szurubooru.func import users as userfuncs
 from szurubooru.func import tag_categories as tagcatfuncs
 from szurubooru.func import tags as tagfuncs
+from szurubooru.func import snapshots
+
+_sys_user = None
+
+def get_system_user():
+    global _sys_user
+
+    if _sys_user is not None:
+        return _sys_user
+
+    sys_user_name = 'szuru-admin-script'
+    u = userfuncs.try_get_user_by_name(sys_user_name)
+    if u is None:
+        password = ''.join(secrets.choice(string.ascii_letters + string.digits) for i in range(25))
+        u = userfuncs.create_user(sys_user_name, password, sys_user_name + '@system.user')
+        u.rank = model.User.RANK_ADMINISTRATOR
+        db.get_session().add(u)
+        db.get_session().flush()
+
+    _sys_user = u
+    return u
 
 
 def resync(ids: List[int], verbose: bool) -> None:
@@ -39,6 +64,8 @@ def resync(ids: List[int], verbose: bool) -> None:
 
         # chuck it in
         postfuncs.update_post_content(p, fcontent)
+        db.get_session().flush()
+        snapshots.modify(p, auth_user=get_system_user())
         
         print("Will refresh content data for post {:d}...".format(post_id))
     
@@ -46,11 +73,13 @@ def resync(ids: List[int], verbose: bool) -> None:
     print("Successfully updated all content")
 
 
-def mass_rename_tags(old: str, new: str, category: str, verbose: bool, apply: bool) -> None:
+def mass_rename_tags(old: str, new: str, preserve: bool, category: str, verbose: bool, apply: bool) -> None:
     """
     Rename all tags matching the old pattern to the new pattern. Uses regular
     expressions for matching and replacing. Not actually applied unless apply
     is set to True.
+
+    If preserve is given, the tag will keep its old name as an alias.
     """
     vprint = print if verbose else lambda *args, **kwargs: None
     def vseparate():
@@ -98,7 +127,7 @@ def mass_rename_tags(old: str, new: str, category: str, verbose: bool, apply: bo
     vprint(f"Found {_p(tag_list, 'tag')}")
     vseparate()
     vprint(f"Filtering by tag first names matching {old_pat.pattern!r}")
-    vprint(f"Replacing with {new!r}")
+    vprint(f"Replacing with '{new}'")
 
     for t in tag_list:
         m = old_pat.search(t.first_name)
@@ -178,6 +207,7 @@ def mass_rename_tags(old: str, new: str, category: str, verbose: bool, apply: bo
         vprint("All checks done; applying...")
     else:
         vprint("All checks done; listing changes without applying...")
+    vseparate()
 
     for act in actions:
         action_type, tag, new_name, target = act
@@ -201,24 +231,19 @@ def mass_rename_tags(old: str, new: str, category: str, verbose: bool, apply: bo
                     all_target_names.append(n.name)
                 for n in tag.names:
                     all_t_names.append(n.name)
-                    # exclude the original name of the tag and the new name
-                    if n.name.lower() != tag.first_name.lower() and n.name.lower() != new_name.lower():
+                    # exclude the new tag name (and the original one unless preserve is specified)
+                    if (preserve or n.name.lower() != tag.first_name.lower()) and n.name.lower() != new_name.lower():
                         all_new_names.append(n.name)
 
                 vprint(f"Merging {all_t_names!r} into {all_target_names!r}")
                 tagfuncs.merge_tags(tag, target)
+                snapshots.merge(tag, target, auth_user=get_system_user())
+                db.get_session().flush()
 
-                # manually drop tag names so the tagname check doesn't universally fail:
-                db.session.query(model.TagName).filter(
-                    model.TagName.tag_id == tag.tag_id
-                ).delete()
-
-                new_tag = (db.session.query(model.Tag)
-                    .filter(model.Tag.tag_id == target.tag_id)
-                    .one())
-                vprint(f"All updated: {list(n.name for n in new_tag.names)!r}")
                 vprint(f"Update to: {all_new_names!r}")
                 tagfuncs.update_tag_names(target, all_new_names)
+                db.get_session().flush()
+                snapshots.modify(target, auth_user=get_system_user())
 
         elif action_type == 'rename':
             print(f"RENAME: {tag.first_name!r} -> {new_name!r}")
@@ -228,9 +253,11 @@ def mass_rename_tags(old: str, new: str, category: str, verbose: bool, apply: bo
                 all_new_names.append(new_name)
 
                 for n in tag.names:
-                    if n.name.lower() != tag.first_name.lower():
+                    if preserve or n.name.lower() != tag.first_name.lower():
                         all_new_names.append(n.name)
                 tagfuncs.update_tag_names(tag, all_new_names)
+                db.get_session().flush()
+                snapshots.modify(tag, auth_user=get_system_user())
 
         else:
             raise errors.ValidationError("Unknown action type: %s" % action_type)
@@ -249,6 +276,7 @@ def mass_tag(
         tags: List[str],
         removal: bool=False,
         implications: bool=False,
+        category: str='',
         verbose: bool=False,
         apply: bool=False) -> None:
     """
@@ -261,35 +289,43 @@ def mass_tag(
     match the pattern.
 
     Not actually applied unless apply is set to True.
+
+    If category is given and is not empty or None, newly-created tags will be
+    in that category; otherwise they will be in the default.
     """
     # get verbose printers
     vprint, vseparate = _vprinters(verbose)
 
-    # apply implications to the given tags if needed
-    if implications:
-        all_added = set()
-        vprint("Checking tags for implications...")
-        tags_with_implied = set(tags)
-        for tname in tags:
-            t = tagfuncs.try_get_tag_by_name(tname)
-            if not t:
-                # no implications if the tag doesn't exist; not an error
-                vprint(f"`{tname!r}` does not exist; skipping")
-                continue
+    # check if any tags need to be created and/or if implications need to be applied to the given tags
+    all_added = set()
+    vprint("Checking new tags for tag existence" + (" and implications" if implications else "") + "...")
+    tags_to_create = set()
+    tags_with_implied = set(tags)
+    for tname in tags:
+        t = tagfuncs.try_get_tag_by_name(tname)
+        if not t:
+            # no implications if the tag doesn't exist; not an error
+            vprint(f"{tname!r} does not exist" + ("; skipping implications check" if implications else ""))
+            tags_to_create.add(tname)
+            continue
 
+        vprint(f'Tag {tname!r} exists' + ("; running implications check..." if implications else ""))
+
+        if implications:
             if len(t.implications) < 1:
-                vprint(f"`{tname!r}` has no implications")
+                vprint(f"{tname!r} has no implications")
                 continue
 
             all_impls = _get_recursive_implications(t)
-            as_str = ', '.join(f'`{impl.first_name}`' for impl in all_impls)
+            as_str = ', '.join(f'{impl.first_name!r}' for impl in all_impls)
 
-            vprint(f"`{tname}` -> {as_str}")
+            vprint(f"{tname!r} -> {as_str}")
             for implied_tag in all_impls:
                 if implied_tag.first_name not in tags_with_implied:
                     all_added.add(implied_tag.first_name)
                 tags_with_implied.add(implied_tag.first_name)
 
+    if implications:
         tags = sorted(list(tags_with_implied))
         op = 'added' if not removal else 'removed'
 
@@ -327,7 +363,10 @@ def mass_tag(
     for post in posts:
         p: model.Post = post
         vprint(f"Matched post {p.post_id} - {id_to_link(p.post_id)}")
-
+    
+    vseparate()
+    
+    post_msgs = []
     changed_posts = {} # id -> (post, new_tags, mods)
     for post in posts:
         p: model.Post = post
@@ -358,15 +397,28 @@ def mass_tag(
         if len(changes) > 0:
             changed_posts[p.post_id] = (p, new_tags, changes)
             op = 'Add' if not removal else 'Remove'
-            print(f"{id_to_link(p.post_id)} - {op} {', '.join(f'`{t}`' for t in changes)}")
-
-            postfuncs.update_post_tags(p, new_tags)
+            post_msgs.append(f"{id_to_link(p.post_id)} - {op} {', '.join(f'`{t}`' for t in changes)}")
         else:
-            print(f"{id_to_link(p.post_id)} - No changes")
+            post_msgs.append(f"{id_to_link(p.post_id)} - No changes")
     
     if len(changed_posts) < 1:
         print("No posts to modify")
         return
+    
+    for msg in post_msgs:
+        print(msg)
+    
+    tagcat = None
+    if len(tags_to_create) > 0 and not removal:
+        vseparate()
+        if category is not None and category != '':
+            vprint(f"Querying for category {category!r}...")
+            tagcat = tagcatfuncs.get_category_by_name(category, False)
+        else:
+            vprint("Querying for default category for creation of tags...")
+            tagcat = tagcatfuncs.get_default_category()
+        vseparate()
+        print(f"New tags to create in category {tagcat.name!r}: " + ', '.join(f'`{t}`' for t in tags_to_create))
 
     op = 'addition' if not removal else 'removal'
     print(f"Tag {op} will be applied to {len(changed_posts)} out of {_p(posts, 'post')} matched")
@@ -374,8 +426,38 @@ def mass_tag(
     if not apply:
         print("No changes applied; if above looks correct, re-run with --apply")
     else:
+        vseparate()
+
+        if len(tags_to_create) > 0 and not removal:
+            created_tags = []
+            for t in tags_to_create:
+                vprint(f"Create tag {t!r}...")
+                new_tag = tagfuncs.create_tag([t], tagcat.name, [], [])
+                created_tags.append(new_tag)
+                db.get_session().add(new_tag)
+            db.get_session().flush()
+        
+            for t in created_tags:
+                snapshots.create(t, auth_user=get_system_user())
+
+            vseparate()
+
+        updated_posts = []
+        for pid in changed_posts:
+            vprint(f"Update post {pid}...")
+            p, new_tags, _ = changed_posts[pid]
+            postfuncs.update_post_tags(p, new_tags)
+            p.last_edit_time = datetime.datetime.utcnow()
+            updated_posts.append(p)
+        db.get_session().flush()
+
+        for p in updated_posts:
+            snapshots.modify(p, auth_user=get_system_user())
+
+        vseparate()
+
         db.get_session().commit()
-        print("All changes applied")
+        print("Post changes applied")
         print("WARNING: Active servers might not see changes until a client mutates something.")
 
 
@@ -453,19 +535,28 @@ def mass_move_tags(search: str, new_cat: str, from_cat: str, verbose: bool, appl
         vprint("Moving tags to new category...")
     else:
         vprint("Listing tags to move...")
+    vseparate()
 
     if not new_cat_exists:
         print(f"CREATE new category {new_cat_name!r}")
         if apply:
             new_cat = tagcatfuncs.create_category(new_cat_name, '#0073ff', 1)
             db.session.add(new_cat)
+            db.session.flush()
+            snapshots.create(new_cat, auth_user=get_system_user())
 
+    updated_tags = []
     new_clause = '' if new_cat_exists else 'new '
     for t in updates:
         t.category = new_cat
         print(f"MOVE {t.first_name!r} to {new_clause}category {new_cat_name!r}")
         if apply:
             db.session.add(t)
+            updated_tags.append(t)
+    if apply:
+        db.session.flush()
+        for t in updated_tags:
+            snapshots.modify(t, auth_user=get_system_user())
  
     if not apply:
         print("No changes applied; if above looks correct, re-run with --apply")
@@ -598,6 +689,12 @@ def main() -> None:
         help="The category of tags to limit the renaming to. If not specified, all tags are considered candidates for renaming.",
     )
     rename_tags_parser.add_argument(
+        "--preserve",
+        "-p",
+        action="store_true",
+        help="Preserve the changed tag as an alias on the newly-named one.",
+    )
+    rename_tags_parser.add_argument(
         "--apply",
         "-a",
         action="store_true",
@@ -658,8 +755,9 @@ def main() -> None:
     )
 
     tag_parser = subparsers.add_parser(
-        'mass-tag',
+        'tag',
         help="Mass tag or untag posts matching a search pattern.",
+        aliases=['mass-tag'],
     )
     tag_parser.add_argument(
         "search",
@@ -681,6 +779,11 @@ def main() -> None:
         "-i",
         action="store_true",
         help="Also add/remove all tags implied by the given tags.",
+    )
+    tag_parser.add_argument(
+        "--category",
+        "-c",
+        help="The category that new tags are created in. If not specified, they are created in the default category.",
     )
     tag_parser.add_argument(
         '--apply',
@@ -708,6 +811,7 @@ def main() -> None:
             mass_rename_tags(
                 command.pattern,
                 command.replacement,
+                command.preserve,
                 command.category,
                 command.verbose,
                 command.apply,
@@ -722,12 +826,13 @@ def main() -> None:
             )
         elif command.subcommand == 'resync':
             resync(command.id, command.verbose)
-        elif command.subcommand == 'mass-tag':
+        elif command.subcommand == 'tag':
             mass_tag(
                 command.search,
                 command.tags,
                 command.delete,
                 command.imply,
+                command.category,
                 command.verbose,
                 command.apply,
             )
