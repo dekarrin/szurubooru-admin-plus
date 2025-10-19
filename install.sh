@@ -76,16 +76,6 @@ else
     echo "Created directory $INSTALL_DIR/admin" >&2
 fi
 
-# Copy convenience script to the szurubooru directory if needed
-if [ -f "$INSTALL_DIR/szuru-admin.sh" ]
-then
-    echo "./szuru-admin.sh already present; not replacing" >&2
-else
-    cp "$SCRIPT_DIR/admin-dist/szuru-admin.sh" "$INSTALL_DIR/szuru-admin.sh"
-    echo "Copied szuru-admin.sh to $INSTALL_DIR" >&2
-fi
-
-
 # Copy szuru_admin_argparse.py python script to the admin directory
 
 function copy_new_or_updated() {
@@ -142,5 +132,7 @@ function copy_new_or_updated() {
 }
 
 # Copy szuru-admin script to the admin directory
+copy_new_or_updated "admin-dist/szuru-admin.sh" "admin-dist/szuru-admin.sh" "szuru-admin.sh"
+copy_new_or_updated "admin-dist/szuru-admin.sh" "admin-dist/szuru-admin.sh" "szuru-admin.sh"
 copy_new_or_updated "admin-dist/szuru-admin" "server/szuru-admin" "admin/szuru-admin"
 copy_new_or_updated "admin-dist/szuru_admin_argparse.py" "server/szuru_admin_argparse.py" "admin/szuru_admin_argparse.py"
