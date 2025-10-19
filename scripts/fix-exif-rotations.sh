@@ -144,21 +144,20 @@ then
 
 	for ((pid=oldest; pid<=newest; pid++))
 	do
-		# TODO: update this to nullglob / compgen -G check in future;
-		# this is fine for now since by the nature of szurubooru, this glob
-		# won't produce additional files. hopefully. unless it has multiple for
-		# post
-		f="$(echo "$posts_path/${pid}_"*)"
-		if [ "$f" = "$posts_path/${pid}_*" ]
-		then
+		# Use nullglob and arrays for robust glob matching
+		shopt -s nullglob
+		matches=("$posts_path/${pid}_"*)
+		shopt -u nullglob
+		if [ ${#matches[@]} -eq 0 ]; then
 			continue
 		fi
-
-		if fix_file "$f"
-		then
-			id_arg_str="$id_arg_str $pid"
-			any_fixed=1
-		fi
+		for f in "${matches[@]}"; do
+			if fix_file "$f"
+			then
+				id_arg_str="$id_arg_str $pid"
+				any_fixed=1
+			fi
+		done
 	done
 else
 	for f in "$@" ; do
