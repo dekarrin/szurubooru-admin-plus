@@ -8,7 +8,7 @@ def parse_args(parser_class=argparse.ArgumentParser):
         epilog="Look at README.md for more info",
     )
 
-    subparsers = parser_top.add_subparsers(dest="subcommand", help="sub-command help")
+    subparsers = parser_top.add_subparsers(dest="subcommand", help="sub-command help", parser_class=parser_class)
     subparsers.required = True
 
     change_password_parser = subparsers.add_parser(
