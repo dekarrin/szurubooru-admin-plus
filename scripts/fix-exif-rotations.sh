@@ -97,7 +97,7 @@ then
 		do
 			# TODO: update this to nullglob / compgen -G check in future;
 			# this is fine for now since by the nature of szurubooru, this glob
-			# wont produce additional files.
+			# won't produce additional files.
 			f="$posts_path/$check"*
 			if [ "$f" = "$posts_path/$check*" ]
 			then
