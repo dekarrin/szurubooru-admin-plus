@@ -110,6 +110,13 @@ then
 		echo "Got $newest"
 	fi
 
+	if [ "$newest" -lt "$oldest" ]
+	then
+		temp="$newest"
+		newest="$oldest"
+		oldest="$temp"
+	fi
+
 	for pid in $(eval "echo {$oldest..$newest}")
 	do
 		# TODO: update this to nullglob / compgen -G check in future;
