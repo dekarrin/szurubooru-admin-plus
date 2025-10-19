@@ -136,7 +136,7 @@ then
 		oldest="$temp"
 	fi
 
-	for pid in $(eval "echo {$oldest..$newest}")
+	for ((pid=oldest; pid<=newest; pid++))
 	do
 		# TODO: update this to nullglob / compgen -G check in future;
 		# this is fine for now since by the nature of szurubooru, this glob
