@@ -85,96 +85,62 @@ else
     echo "Copied szuru-admin.sh to $INSTALL_DIR" >&2
 fi
 
-# Copy szuru-admin script to the admin directory
-
-# Where from? If running directly from the git repo, the script is located in
-# server/szuru-admin. If running from a distribution package, it is in
-# admin-dist/szuru-admin. Detect which one is present.
-NEW_SZURU_ADMIN_FILE=
-if [ -f "$SCRIPT_DIR/admin-dist/szuru-admin" ]
-then
-    NEW_SZURU_ADMIN_FILE="$SCRIPT_DIR/admin-dist/szuru-admin"
-else
-    NEW_SZURU_ADMIN_FILE="$SCRIPT_DIR/server/szuru-admin"
-fi
-
-script_copy_needed=
-if [ -f "$INSTALL_DIR/admin/szuru-admin" ]
-then
-    # first check if the file is even different at all
-    existing_sum="$(checksum "$INSTALL_DIR/admin/szuru-admin")"
-    new_sum="$(checksum "$NEW_SZURU_ADMIN_FILE")"
-    if [ "$existing_sum" = "$new_sum" ]
-    then
-        echo "Existing server/szuru-admin script already has updated contents." >&2
-    else    
-        # use datetime checks to see if the file we have is newer
-        existing_mtime="$(date -r "$INSTALL_DIR/admin/szuru-admin" '+%s')"
-        new_mtime="$(date -r "$NEW_SZURU_ADMIN_FILE" '+%s')"
-        if [ "$existing_mtime" -lt "$new_mtime" ]
-        then
-            echo "Replacing old server/szuru-admin script with newer version..." >&2
-            script_copy_needed=1
-        else
-            echo "Existing server/szuru-admin script is newer; not copying." >&2
-        fi
-    fi
-else
-    script_copy_needed=1
-fi
-
-if [ -n "$script_copy_needed" ]
-then
-    cp "$NEW_SZURU_ADMIN_FILE" "$INSTALL_DIR/admin/szuru-admin"
-    echo "Copied server/szuru-admin script to $INSTALL_DIR/admin/szuru-admin" >&2
-else
-    echo "No need to copy server/szuru-admin script; it is already up-to-date." >&2
-fi
-
-
 
 # Copy szuru_admin_argparse.py python script to the admin directory
 
-# Where from? If running directly from the git repo, the module is located in
-# server/szuru_admin_argparse.py. If running from a distribution package, it is
-# in admin-dist/szuru_admin_argparse.py. Detect which one is present.
-NEW_SZURU_ARGPARSE_FILE=
-if [ -f "$SCRIPT_DIR/admin-dist/szuru_admin_argparse.py" ]
-then
-    NEW_SZURU_ARGPARSE_FILE="$SCRIPT_DIR/admin-dist/szuru_admin_argparse.py"
-else
-    NEW_SZURU_ARGPARSE_FILE="$SCRIPT_DIR/server/szuru_admin_argparse.py"
-fi
+function copy_new_or_updated() {
+    source_dist_rel_path="$1"
+    source_repo_rel_path="$2"
+    dest_install_rel_path="$3"
 
-argparse_copy_needed=
-if [ -f "$INSTALL_DIR/admin/szuru_admin_argparse.py" ]
-then
-    # first check if the file is even different at all
-    existing_sum="$(checksum "$INSTALL_DIR/admin/szuru_admin_argparse.py")"
-    new_sum="$(checksum "$NEW_SZURU_ARGPARSE_FILE")"
-    if [ "$existing_sum" = "$new_sum" ]
+    # Where from? If running directly from the git repo, the module is located in
+    # server/szuru_admin_argparse.py. If running from a distribution package, it is
+    # in admin-dist/szuru_admin_argparse.py. Detect which one is present.
+    local source=
+    if [ -f "$SCRIPT_DIR/$source_dist_rel_path" ]
     then
-        echo "Existing server/szuru_admin_argparse.py script already has updated contents." >&2
-    else    
-        # use datetime checks to see if the file we have is newer
-        existing_mtime="$(date -r "$INSTALL_DIR/admin/szuru_admin_argparse.py" '+%s')"
-        new_mtime="$(date -r "$NEW_SZURU_ARGPARSE_FILE" '+%s')"
-        if [ "$existing_mtime" -lt "$new_mtime" ]
-        then
-            echo "Replacing old server/szuru_admin_argparse.py script with newer version..." >&2
-            argparse_copy_needed=1
-        else
-            echo "Existing server/szuru_admin_argparse.py script is newer; not copying." >&2
-        fi
+        source="$SCRIPT_DIR/$source_dist_rel_path"
+    else
+        source="$SCRIPT_DIR/$source_repo_rel_path"
     fi
-else
-    argparse_copy_needed=1
-fi
+    local dest="$INSTALL_DIR/$dest_install_rel_path"
 
-if [ -n "$argparse_copy_needed" ]
-then
-    cp "$NEW_SZURU_ARGPARSE_FILE" "$INSTALL_DIR/admin/szuru_admin_argparse.py"
-    echo "Copied server/szuru_admin_argparse.py script to $INSTALL_DIR/admin/szuru_admin_argparse.py" >&2
-else
-    echo "No need to copy server/szuru_admin_argparse.py script; it is already up-to-date." >&2
-fi
+    local source_file_name="$(basename "$source")"
+
+    local file_copy_needed=
+    if [ -f "$dest" ]
+    then
+        # first check if the file is even different at all
+        existing_sum="$(checksum "$dest")"
+        new_sum="$(checksum "$source")"
+        if [ "$existing_sum" = "$new_sum" ]
+        then
+            echo "Existing $source_file_name script already has updated contents." >&2
+        else    
+            # use datetime checks to see if the file we have is newer
+            local existing_mtime="$(date -r "$dest" '+%s')"
+            local new_mtime="$(date -r "$source" '+%s')"
+            if [ "$existing_mtime" -lt "$new_mtime" ]
+            then
+                echo "Replacing old $source_file_name script with newer version..." >&2
+                file_copy_needed=1
+            else
+                echo "Existing $source_file_name script is newer; not copying." >&2
+            fi
+        fi
+    else
+        file_copy_needed=1
+    fi
+
+    if [ -n "$file_copy_needed" ]
+    then
+        cp "$source" "$dest"
+        echo "Copied $source_file_name to $dest" >&2
+    else
+        echo "No need to copy $source_file_name; it is already up-to-date." >&2
+    fi
+}
+
+# Copy szuru-admin script to the admin directory
+copy_new_or_updated "admin-dist/szuru-admin" "server/szuru-admin" "admin/szuru-admin"
+copy_new_or_updated "admin-dist/szuru_admin_argparse.py" "server/szuru_admin_argparse.py" "admin/szuru_admin_argparse.py"
