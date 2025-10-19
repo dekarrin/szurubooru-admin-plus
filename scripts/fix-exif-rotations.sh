@@ -50,6 +50,7 @@ for f in "$@" ; do
 	then
 		input_mode="$input_mode_id_range"
 	elif [ "$f" = "--files" ]
+	then
 		input_mode="$input_mode_files"
 	elif [ "$f" = "-h" -o "$f" = "--help" ]
 	then
