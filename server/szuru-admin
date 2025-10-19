@@ -296,8 +296,7 @@ def mass_tag(
     # get verbose printers
     vprint, vseparate = _vprinters(verbose)
 
-    # check if any tags need to be created, and/or apply implications to the
-    # given tags are needed
+    # check if any tags need to be created and/or if implications need to be applied to the given tags
     all_added = set()
     vprint("Checking new tags for tag existence" + (" and implications" if implications else "") + "...")
     tags_to_create = set()
