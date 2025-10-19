@@ -181,8 +181,7 @@ class PreParser(argparse.ArgumentParser):
     and the exit_on_error property for its own error handling.
     """
     def __init__(self, **kwargs):
-        if 'exit_on_error' not in kwargs:
-            kwargs['exit_on_error'] = True
+        kwargs['exit_on_error'] = True
         super().__init__(**kwargs)
     
     def print_help(self, file=None):
@@ -203,11 +202,11 @@ def main() -> None:
     Depending on the result of parsing, the exit code will be different. If help
     is shown, the value of envvar SZURU_PREPARSE_HELP_STATUS is returned (default 3).
     If a parse error occurs, the value of envvar SZURU_PREPARSE_ERROR_STATUS is
-    returned (default 2).    
+    returned (default 2).
     """
 
-    _preparse_help_exit_code = os.getenv('SZURU_PREPARSE_HELP_STATUS', _preparse_help_exit_code)
-    _preparse_parse_exit_code = os.getenv('SZURU_PREPARSE_ERROR_STATUS', _preparse_parse_exit_code)
+    _preparse_help_exit_code = int(os.getenv('SZURU_PREPARSE_HELP_STATUS', str(_preparse_help_exit_code)))
+    _preparse_parse_exit_code = int(os.getenv('SZURU_PREPARSE_ERROR_STATUS', str(_preparse_parse_exit_code)))
 
     # explicitly do not try to catch exceptions; if something goes wrong, we
     # want it to be shown exactly as it might the real program.
