@@ -119,20 +119,19 @@ then
 	then
 		# auto-detect highest post number
 		echo "Checking for highest post number..."
-		check=$(( $oldest + 1 ))
-		while true
-		do
-			# TODO: update this to nullglob / compgen -G check in future;
-			# this is fine for now since by the nature of szurubooru, this glob
-			# won't produce additional files.
-			f="$(echo "$posts_path/$check"*)"
-			if [ "$f" = "$posts_path/$check*" ]
-			then
-				newest=$(( $check - 1 ))
-				break
+		shopt -s nullglob
+		max_id="$oldest"
+		for file in "$posts_path"/*; do
+			base="$(basename "$file")"
+			id="${base%%_*}"
+			if [[ "$id" =~ ^[0-9]+$ ]]; then
+				if (( id > max_id )); then
+					max_id="$id"
+				fi
 			fi
-			((check++))
 		done
+		newest="$max_id"
+		shopt -u nullglob
 		echo "Got $newest"
 	fi
 
@@ -143,7 +142,7 @@ then
 		oldest="$temp"
 	fi
 
-	for pid in $(eval "echo {$oldest..$newest}")
+	for ((pid=oldest; pid<=newest; pid++))
 	do
 		# TODO: update this to nullglob / compgen -G check in future;
 		# this is fine for now since by the nature of szurubooru, this glob
