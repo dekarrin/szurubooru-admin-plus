@@ -50,6 +50,7 @@ for f in "$@" ; do
 	then
 		input_mode="$input_mode_id_range"
 	elif [ "$f" = "--files" ]
+	then
 		input_mode="$input_mode_files"
 	elif [ "$f" = "-h" -o "$f" = "--help" ]
 	then
@@ -174,7 +175,7 @@ then
 	done
 elif [ "$input_mode" -eq "$input_mode_days_old" ]
 then
-	if [ "$#" -ne 1 -a "$#" -ne 2 ]
+	if [ "$#" -ne 1 ] && [ "$#" -ne 0 ]
 	then
 		echo 'error: must give one or zero args' >&2
 		echo "usage: $0 [DAYS-OLD]" >&2
@@ -195,7 +196,7 @@ then
 
 	[ -n "$days" ] || days=1
 
-	echo "Checking posts modified $days ago or sooner..."
+	echo "Checking posts modified within the last $days day(s)..."
 
 	posts_path="$BOORU_DIR/data/posts"
 
