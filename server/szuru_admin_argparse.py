@@ -1,10 +1,12 @@
 import argparse
 import sys
 
+_help_exit_code = 134
+
 class Parser(argparse.ArgumentParser):
     def print_help(self, file=None):
         super().print_help(file)
-        self.exit(3434)
+        self.exit(_help_exit_code)
 
 
 def parse_args(parser_class=argparse.ArgumentParser):
