@@ -195,7 +195,7 @@ then
 
 	[ -n "$days" ] || days=1
 
-	echo "Checking posts modified $days ago or sooner..."
+	echo "Checking posts modified within the last $days day(s)..."
 
 	posts_path="$BOORU_DIR/data/posts"
 
