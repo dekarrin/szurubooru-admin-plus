@@ -9,7 +9,7 @@
 BOORU_DIR="$(dirname "$0")"
 
 function fix_file() {
-	f="$1"
+	local f="$1"
 	
 	if [ ! -f "$f" ]
 	then
@@ -17,7 +17,7 @@ function fix_file() {
 		return 1
 	fi
 	
-	cur="$(exiftran -d "$f" 2>/dev/null | grep 'Orientation' | head -n 1 | awk '{print $3;}')"
+	local cur="$(exiftran -d "$f" 2>/dev/null | grep 'Orientation' | head -n 1 | awk '{print $3;}')"
 	
 	#formatting
 	cur="$(echo "$cur" | xargs | tr '[:upper:]' '[:lower:]')"
@@ -26,11 +26,11 @@ function fix_file() {
 	[ -n "$cur" ] || return 1
 	[ "$cur" != 'top-left' ] || return 1
 
-	id="$(echo "$(basename "$f")" | cut -d _ -f 1)"
+	local id="$(echo "$(basename "$f")" | cut -d _ -f 1)"
 	
 	echo "Rotating file for post ID $id..."
 	exiftran -a -i -p "$f"
-	rc=$?
+	local rc=$?
 	return $rc
 }
 
