@@ -14,7 +14,7 @@ function fix_file() {
 	#formatting
 	cur="$(echo "$cur" | xargs | tr '[:upper:]' '[:lower:]')"
 	
-	# skip cases that dont need fixing
+	# skip cases that don't need fixing
 	[ -n "$cur" ] || return 1
 	[ "$cur" != 'top-left' ] || return 1
 
@@ -69,7 +69,7 @@ then
 	newest=
 
 	set_oldest=
-	digit_re='^[0-9]$'
+	digit_re='^[0-9]+$'
 	for arg in "$@"; do
 		[ "$arg" != "--id-range" ] || continue
 		if [ -z "$set_oldest" ]
@@ -99,8 +99,12 @@ then
 		check=$(( $oldest + 1 ))
 		while true
 		do
+			# TODO: update this to nullglob / compgen -G check in future;
+			# this is fine for now since by the nature of szurubooru, this glob
+			# wont produce additional files.
 			f="$posts_path/$check"*
-			if [ "$f" -eq "$posts_path/$check*" ]
+			if [ "$f" = "$posts_path/$check*" ]
+			then
 				newest=$(( $check - 1 ))
 				break
 			fi
@@ -109,10 +113,14 @@ then
 		echo "Got $newest"
 	fi
 
-	for pid in {$oldest..$newest}
+	for pid in $(eval "echo {$oldest..$newest}")
 	do
+		# TODO: update this to nullglob / compgen -G check in future;
+		# this is fine for now since by the nature of szurubooru, this glob
+		# wont produce additional files.
 		f="$posts_path/$pid"*
-		if [ "$f" -eq "$posts_path/$pid*" ]
+		if [ "$f" = "$posts_path/$pid*" ]
+		then
 			continue
 		fi
 
