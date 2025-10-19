@@ -208,7 +208,7 @@ then
 
 	# TODO: files probably dont have spaces in them but if they do this will
 	# need to be updated to account for that.
-	for f in $(find "$posts_path/." -mtime -$days)
+	for f in $(find "$posts_path/." -type f -mtime -$days)
 	do
 		fix_and_append "$f"
 	done
