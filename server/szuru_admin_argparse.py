@@ -174,16 +174,7 @@ class PreParser(argparse.ArgumentParser):
     codes on exit conditions. If there is an error, _preparse_parse_exit_code is
     used (default 2), and if help output is requested, _preparse_help_exit_code
     is used (default 3).
-
-    PreParser's constructor takes the same args as ArgumentParser and uses them
-    as it does, with one exception: 'exit_on_error' is effectively always set to
-    true regardless of what user passes in; PreParser ignores it and mutates it
-    and the exit_on_error property for its own error handling.
     """
-    def __init__(self, **kwargs):
-        kwargs['exit_on_error'] = True
-        super().__init__(**kwargs)
-    
     def print_help(self, file=None):
         super().print_help(file)
         self.exit(_preparse_help_exit_code)
