@@ -5,6 +5,9 @@ Enhances the szurubooru admin tool with additional functionality.
 
 * Rename tags by regular expression patterns
 * Move tags matching regex to new category
+* Tag things as one would with mass tagging, but with automatic application to
+  search terms.
+* Script to fix exif rotations.
 
 ## Requirements
 
