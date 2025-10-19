@@ -202,7 +202,7 @@ then
 
 	posts_path="$BOORU_DIR/data/posts"
 
-	for f in $(find "$posts_path/." -mtime -$days)
+	for f in $(find "$posts_path/." -type f -mtime -$days)
 	do
 		fix_and_append "$f"
 	done
