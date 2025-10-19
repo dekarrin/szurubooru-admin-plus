@@ -8,8 +8,8 @@
 if command -v python3
 then
     help_exit_code=134
-    
-    python3 "$(dirname "$0")"/admin/szuru_admin_argparse.py "$@"
+
+    SZURU_PREPARSE_HELP_STATUS="help_exit_code" python3 "$(dirname "$0")"/admin/szuru_admin_argparse.py "$@"
     pre_run_status="$?"
 
     if [ "$pre_run_status" -ne 0 ]

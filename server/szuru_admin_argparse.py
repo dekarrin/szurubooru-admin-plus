@@ -1,13 +1,6 @@
 import argparse
 import sys
-
-_help_exit_code = 134
-
-class Parser(argparse.ArgumentParser):
-    def print_help(self, file=None):
-        super().print_help(file)
-        self.exit(_help_exit_code)
-
+import os
 
 def parse_args(parser_class=argparse.ArgumentParser):
     parser_top = parser_class(
@@ -171,12 +164,54 @@ def parse_args(parser_class=argparse.ArgumentParser):
     return parser_top.parse_args()
 
 
+_preparse_help_exit_code = 3
+_preparse_parse_exit_code = 2
+
+
+class PreParser(argparse.ArgumentParser):
+    """
+    PreParser is a specialization of ArgumentParser that returns custom exit
+    codes on exit conditions. If there is an error, _preparse_parse_exit_code is
+    used (default 2), and if help output is requested, _preparse_help_exit_code
+    is used (default 3).
+
+    PreParser's constructor takes the same args as ArgumentParser and uses them
+    as it does, with one exception: 'exit_on_error' is effectively always set to
+    true regardless of what user passes in; PreParser ignores it and mutates it
+    and the exit_on_error property for its own error handling.
+    """
+    def __init__(self, **kwargs):
+        if 'exit_on_error' not in kwargs:
+            kwargs['exit_on_error'] = True
+        super().__init__(**kwargs)
+    
+    def print_help(self, file=None):
+        super().print_help(file)
+        self.exit(_preparse_help_exit_code)
+
+    def error(self, message):
+        self.print_usage(sys.stderr)
+        args = {'prog': self.prog, 'message': message}
+        self.exit(_preparse_parse_exit_code, ('%(prog)s: error: %(message)s\n') % args)
+
 
 def main() -> None:
-    try:
-        parse_args(Parser)
-    except:
-        sys.exit(2)
+    """
+    Perform parsing of CLI options intended for the szuru-admin script, without
+    performing any actual operations.
+
+    Depending on the result of parsing, the exit code will be different. If help
+    is shown, the value of envvar SZURU_PREPARSE_HELP_STATUS is returned (default 3).
+    If a parse error occurs, the value of envvar SZURU_PREPARSE_ERROR_STATUS is
+    returned (default 2).    
+    """
+
+    _preparse_help_exit_code = os.getenv('SZURU_PREPARSE_HELP_STATUS', _preparse_help_exit_code)
+    _preparse_parse_exit_code = os.getenv('SZURU_PREPARSE_ERROR_STATUS', _preparse_parse_exit_code)
+
+    # explicitly do not try to catch exceptions; if something goes wrong, we
+    # want it to be shown exactly as it might the real program.
+    parse_args(PreParser)
 
 
 if __name__ == "__main__":
