@@ -204,12 +204,13 @@ def main() -> None:
     If a parse error occurs, the value of envvar SZURU_PREPARSE_ERROR_STATUS is
     returned (default 2).
     """
+    global _preparse_help_exit_code, _preparse_parse_exit_code
 
     _preparse_help_exit_code = int(os.getenv('SZURU_PREPARSE_HELP_STATUS', str(_preparse_help_exit_code)))
     _preparse_parse_exit_code = int(os.getenv('SZURU_PREPARSE_ERROR_STATUS', str(_preparse_parse_exit_code)))
 
     # explicitly do not try to catch exceptions; if something goes wrong, we
-    # want it to be shown exactly as it might the real program.
+    # want it to be shown exactly as it would in the real program.
     parse_args(PreParser)
 
 
