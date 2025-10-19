@@ -7,7 +7,6 @@
 # ...but first, see if we can find a python to run
 if command -v python3
 then
-    echo "running"
     if ! python3 "$(dirname "$0")"/admin/szuru_admin_argparse.py "$@"
     then
         # if it's the special exit code for printing help, actually dont
@@ -15,7 +14,6 @@ then
 
         exit "$?"
     fi
-    echo "$?"
 fi
 
 docker-compose run --rm server ./szuru-admin "$@"
