@@ -48,10 +48,17 @@ if [[ ! -f "$INSTALL_DIR/docker-compose.yml" ]]; then
 fi
 
 # Update docker-compose if needed.
+update_docker_compose=1
 if grep ':/opt/app/szuru-admin' "$INSTALL_DIR/docker-compose.yml" > /dev/null 2>&1
 then
-    echo "docker-compose.yml already has a volume mount for szuru-admin; not modifying." >&2
-else
+    if grep ':/opt/app/szuru_admin_argparse.py' "$INSTALL_DIR/docker-compose.yml" > /dev/null 2>&1
+    then
+        echo "docker-compose.yml already has volume mounts for szuru-admin files; not modifying." >&2
+        update_docker_compose=
+    fi
+fi
+if [ -n "$update_docker_compose" ]
+then
     old_compose="docker-compose.yml.bak-$(date +%Y%m%d%H%M%S)"
     cp "$INSTALL_DIR/docker-compose.yml" "$INSTALL_DIR/$old_compose"
     echo "Backed up existing docker-compose.yml to $old_compose" >&2
@@ -122,4 +129,52 @@ then
     echo "Copied server/szuru-admin script to $INSTALL_DIR/admin/szuru-admin" >&2
 else
     echo "No need to copy server/szuru-admin script; it is already up-to-date." >&2
+fi
+
+
+
+# Copy szuru_admin_argparse.py python script to the admin directory
+
+# Where from? If running directly from the git repo, the module is located in
+# server/szuru_admin_argparse.py. If running from a distribution package, it is
+# in admin-dist/szuru_admin_argparse.py. Detect which one is present.
+NEW_SZURU_ARGPARSE_FILE=
+if [ -f "$SCRIPT_DIR/admin-dist/szuru_admin_argparse.py" ]
+then
+    NEW_SZURU_ARGPARSE_FILE="$SCRIPT_DIR/admin-dist/szuru_admin_argparse.py"
+else
+    NEW_SZURU_ARGPARSE_FILE="$SCRIPT_DIR/server/szuru_admin_argparse.py"
+fi
+
+argparse_copy_needed=
+if [ -f "$INSTALL_DIR/admin/szuru_admin_argparse.py" ]
+then
+    # first check if the file is even different at all
+    existing_sum="$(checksum "$INSTALL_DIR/admin/szuru_admin_argparse.py")"
+    new_sum="$(checksum "$NEW_SZURU_ARGPARSE_FILE")"
+    if [ "$existing_sum" = "$new_sum" ]
+    then
+        echo "Existing server/szuru_admin_argparse.py script already has updated contents." >&2
+    else    
+        # use datetime checks to see if the file we have is newer
+        existing_mtime="$(date -r "$INSTALL_DIR/admin/szuru_admin_argparse.py" '+%s')"
+        new_mtime="$(date -r "$NEW_SZURU_ARGPARSE_FILE" '+%s')"
+        if [ "$existing_mtime" -lt "$new_mtime" ]
+        then
+            echo "Replacing old server/szuru_admin_argparse.py script with newer version..." >&2
+            argparse_copy_needed=1
+        else
+            echo "Existing server/szuru_admin_argparse.py script is newer; not copying." >&2
+        fi
+    fi
+else
+    argparse_copy_needed=1
+fi
+
+if [ -n "$argparse_copy_needed" ]
+then
+    cp "$NEW_SZURU_ARGPARSE_FILE" "$INSTALL_DIR/admin/szuru_admin_argparse.py"
+    echo "Copied server/szuru_admin_argparse.py script to $INSTALL_DIR/admin/szuru_admin_argparse.py" >&2
+else
+    echo "No need to copy server/szuru_admin_argparse.py script; it is already up-to-date." >&2
 fi
