@@ -68,7 +68,7 @@ for f in "$@" ; do
 		echo ""
 		echo "If --id-range is provided as an option, the parameters are read as the numeric"
 		echo "post ID(s) of the OLDEST post (and optionally the NEWEST as well). All posts"
-		echo "between OLDEST and NEWEST (inclusive) are scanned for rotation and resynched if"
+		echo "between OLDEST and NEWEST (inclusive) are scanned for rotation and resynced if"
 		echo "needed. If NEWEST is not given, it defaults to the highest possible post number"
 		echo "which exists."
 		exit
