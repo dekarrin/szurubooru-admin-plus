@@ -174,7 +174,7 @@ then
 	done
 elif [ "$input_mode" -eq "$input_mode_days_old" ]
 then
-	if [ "$#" -ne 2 -a "$#" -ne 1 ]
+	if [ "$#" -ne 1 -a "$#" -ne 2 ]
 	then
 		echo 'error: must give one or zero args' >&2
 		echo "usage: $0 [DAYS-OLD]" >&2
