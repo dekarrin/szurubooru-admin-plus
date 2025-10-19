@@ -6,6 +6,9 @@
 # WARNING: DO NOT RUN THIS FROM THE REPO, it must be ./install.sh'd to the
 # target booru dir before executed.
 
+
+# Check for exiftran dependency
+command -v exiftran >/dev/null 2>&1 || { echo 'error: exiftran is required but not installed' >&2; exit 1; }
 BOORU_DIR="$(dirname "$0")"
 
 function fix_file() {
