@@ -24,7 +24,8 @@ function fix_file() {
 	
 	echo "Rotating file for post ID $id..."
 	exiftran -a -i -p "$f"
-	return 0
+	rc=$?
+	return $rc
 }
 
 if [ $# -lt 1 ]
@@ -97,14 +98,14 @@ then
 		do
 			# TODO: update this to nullglob / compgen -G check in future;
 			# this is fine for now since by the nature of szurubooru, this glob
-			# wont produce additional files.
+			# won't produce additional files.
 			f="$posts_path/$check"*
 			if [ "$f" = "$posts_path/$check*" ]
 			then
 				newest=$(( $check - 1 ))
 				break
 			fi
-			(( $check++ ))
+			((check++))
 		done
 		echo "Got $newest"
 	fi

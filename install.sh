@@ -133,6 +133,6 @@ function copy_new_or_updated() {
 
 # Copy szuru-admin script to the admin directory
 copy_new_or_updated "admin-dist/szuru-admin.sh" "admin-dist/szuru-admin.sh" "szuru-admin.sh"
-copy_new_or_updated "admin-dist/szuru-admin.sh" "admin-dist/szuru-admin.sh" "szuru-admin.sh"
+copy_new_or_updated "admin-dist/fix-exif-rotations.sh" "scripts/fix-exif-rotations.sh" "fix-exif-rotations.sh"
 copy_new_or_updated "admin-dist/szuru-admin" "server/szuru-admin" "admin/szuru-admin"
 copy_new_or_updated "admin-dist/szuru_admin_argparse.py" "server/szuru_admin_argparse.py" "admin/szuru_admin_argparse.py"

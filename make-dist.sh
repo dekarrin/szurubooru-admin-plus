@@ -24,6 +24,8 @@ mkdir -p "$DIST_DIR"
 mkdir -p "$DIST_DIR/admin-dist"
 
 cp server/szuru-admin "$DIST_DIR/admin-dist/szuru-admin"
+cp server/szuru_admin_argparse.py "$DIST_DIR/admin-dist/szuru_admin_argparse.py"
+cp scripts/fix-exif-rotations.sh "$DIST_DIR/admin-dist/fix-exif-rotations.sh"
 cp admin-dist/* "$DIST_DIR/admin-dist/"
 cp install.sh README.md LICENSE.md "$DIST_DIR/"
 
