@@ -5,7 +5,7 @@
 # with a valid docker-compose.yml file setup.
 
 # ...but first, see if we can find a python to run
-if command -v python3
+if command -v python3 >/dev/null 2>&1
 then
     help_exit_code=134
 
