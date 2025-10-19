@@ -76,7 +76,7 @@ for f in "$@" ; do
 		echo ""
 		echo "If --files is provided as an option, the parameters are read as a list of files"
 		echo "to be checked. This can be simplified by providing a glob such as"
-		echo './data/posts/*.jpg.' 
+		echo './data/posts/*.jpg'
 		echo ""
 		exit 0
 	fi
