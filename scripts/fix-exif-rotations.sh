@@ -37,42 +37,35 @@ function fix_file() {
 	return $rc
 }
 
-if [ $# -lt 1 ]
-then
-	echo 'error: must give file(s) to fix' >&2
-	echo '(you probably want to do ./data/posts/*.jpg and ./data/posts/*.jpeg)' >&2
-	exit 1
-fi
-
 
 # scan for different input modes
 input_mode_files=1
 input_mode_id_range=2
 input_mode_days_old=3
 
-input_mode="$input_mode_files"
+input_mode="$input_mode_days_old"
 
 for f in "$@" ; do
 	if [ "$f" = "--id-range" ]
 	then
 		input_mode="$input_mode_id_range"
-	elif [ "$f" = "--age" ]
-	then
-		input_mode="$input_mode_days_old"
+	elif [ "$f" = "--files" ]
+		input_mode="$input_mode_files"
 	elif [ "$f" = "-h" -o "$f" = "--help" ]
 	then
 		echo "fix-exif-rotations.sh: Scans files for rotation with exiftran and fixes them."
 		echo ""
-		echo "usage: $0 file1 [file2 [...fileN]]"
+		echo "usage: $0 [DAYS-OLD]"
 		echo "   OR  $0 --id-range OLDEST [NEWEST]"
-		echo "   OR  $0 --age [DAYS-OLD]"
+		echo "   OR  $0 --files FILE1 [FILE2 [...FILEN]]"
 		echo ""
 		echo "Each file matched is checked for rotation and if EXIF tags specify it has"
 		echo "rotation, it is rotated to be correct and the EXIF tag updated. Then, the"
 		echo "affected posts are resynced in Szurubooru."
 		echo ""
-		echo "By default, the provided args are a list of files to be checked. This can be"
-		echo 'simplified by providing a glob such as ./data/posts/*.jpg.' 
+		echo "By default, checks for posts with files that are one day old or newer. The"
+		echo "limit to the number of days old of checked files can be modified by giving it as"
+		echo "a parameter."
 		echo ""
 		echo "If --id-range is provided as an option, the parameters are read as the numeric"
 		echo "post ID(s) of the OLDEST post (and optionally the NEWEST as well). All posts"
@@ -80,9 +73,10 @@ for f in "$@" ; do
 		echo "needed. If NEWEST is not given, it defaults to the highest possible post number"
 		echo "which exists."
 		echo ""
-		echo "If --age is provided as an option, the parameter (if any) is read as a numeric"
-		echo "number of days old for which posts should be checked for. It can be omitted,"
-		echo "in which case posts with files that are 1 day old or less will be checked."
+		echo "If --files is provided as an option, the parameters are read as a list of files"
+		echo "to be checked. This can be simplified by providing a glob such as"
+		echo './data/posts/*.jpg.' 
+		echo ""
 		exit 0
 	fi
 done
@@ -182,7 +176,7 @@ elif [ "$input_mode" -eq "$input_mode_days_old" ]
 then
 	if [ "$#" -ne 2 -a "$#" -ne 1 ]
 	then
-		echo 'error: --age input mode takes one or zero args' >&2
+		echo 'error: must give one or zero args' >&2
 		echo "usage: $0 --age [DAYS-OLD]" >&2
 		exit 1
 	fi
@@ -191,7 +185,6 @@ then
 
 	digit_re='^[0-9]+$'
 	for arg in "$@"; do
-		[ "$arg" != "--age" ] || continue
 		if ! [[ "$arg" =~ $digit_re ]]
 		then
 			echo "error: not a number: $arg" >&2
@@ -213,7 +206,16 @@ then
 		fix_and_append "$f"
 	done
 else
+	if [ $# -lt 2 ]
+	then
+		echo 'error: must give file(s) to fix' >&2
+		echo '(you probably want to do ./data/posts/*.jpg and ./data/posts/*.jpeg)' >&2
+		echo "usage: $0 --files FILE1 [FILE2 [...FILEN]]" >&2
+		exit 1
+	fi
+
 	for f in "$@" ; do
+		[ "$f" != "--files" ] || continue
 		fix_and_append "$f"
 	done
 fi
