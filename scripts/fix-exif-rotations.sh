@@ -104,7 +104,7 @@ then
 				newest=$(( $check - 1 ))
 				break
 			fi
-			(( $check++ ))
+			((check++))
 		done
 		echo "Got $newest"
 	fi
