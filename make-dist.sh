@@ -29,6 +29,9 @@ cp scripts/fix-exif-rotations.sh "$DIST_DIR/admin-dist/fix-exif-rotations.sh"
 cp admin-dist/* "$DIST_DIR/admin-dist/"
 cp install.sh README.md LICENSE.md "$DIST_DIR/"
 
+# Create VERSION file with the version number
+echo "$VERSION" > "$DIST_DIR/admin-dist/VERSION"
+
 # tar it all up
 tar -czf "szuru-admin-plus-$VERSION.tar.gz" "$DIST_DIR"
 

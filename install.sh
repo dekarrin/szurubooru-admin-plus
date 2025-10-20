@@ -137,3 +137,8 @@ copy_new_or_updated "admin-dist/fix-exif-rotations.sh" "scripts/fix-exif-rotatio
 # Copy admin scripts to the admin directory
 copy_new_or_updated "admin-dist/szuru-admin" "server/szuru-admin" "admin/szuru-admin"
 copy_new_or_updated "admin-dist/szuru_admin_argparse.py" "server/szuru_admin_argparse.py" "admin/szuru_admin_argparse.py"
+
+# Copy VERSION file if it exists (from distribution packages)
+if [ -f "$SCRIPT_DIR/admin-dist/VERSION" ]; then
+    copy_new_or_updated "admin-dist/VERSION" "admin-dist/VERSION" "admin/VERSION"
+fi

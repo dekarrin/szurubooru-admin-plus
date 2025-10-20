@@ -161,6 +161,11 @@ def parse_args(parser_class=argparse.ArgumentParser):
         help='Enable verbose output',
     )
 
+    subparsers.add_parser(
+        'version',
+        help="Display the version of szuru-admin-plus.",
+    )
+
     return parser_top.parse_args()
 
 

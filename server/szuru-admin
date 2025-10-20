@@ -9,6 +9,7 @@ import os
 import re
 import time
 import math
+import subprocess
 from getpass import getpass
 from sys import stderr
 from typing import Any, Iterable, Union, Tuple, Callable, List, Set
@@ -643,6 +644,39 @@ def reset_filenames() -> None:
     rename_in_dir("posts/custom-thumbnails/")
 
 
+def version() -> None:
+    """
+    Display the current version of szuru-admin-plus.
+    If running from a release, shows the release version.
+    If running from a git repository, shows the last version tag and commit SHA.
+    """
+    # First, check if we're in a release (VERSION file exists)
+    version_file_path = os.path.join(os.path.dirname(__file__), 'VERSION')
+    
+    if os.path.exists(version_file_path):
+        # Running from a release distribution
+        with open(version_file_path, 'r') as f:
+            version_str = f.read().strip()
+        print(f"szuru-admin-plus {version_str}")
+    else:
+        # Running from a git repository, use git describe
+        try:
+            import subprocess
+            result = subprocess.run(
+                ['git', 'describe', '--tags', '--always', '--dirty'],
+                capture_output=True,
+                text=True,
+                check=True,
+                cwd=os.path.dirname(__file__)
+            )
+            version_str = result.stdout.strip()
+            print(f"szuru-admin-plus {version_str} (non-release)")
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            # Git not available or not in a git repo
+            print("szuru-admin-plus (unknown version)")
+
+
+
 def main() -> None:
     command = szuru_admin_argparse.parse_args()
 
@@ -653,6 +687,8 @@ def main() -> None:
             check_audio()
         elif command.subcommand == "reset-filenames":
             reset_filenames()
+        elif command.subcommand == "version":
+            version()
         elif command.subcommand == "rename-tags":
             mass_rename_tags(
                 command.pattern,
