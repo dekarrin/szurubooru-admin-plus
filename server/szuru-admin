@@ -28,6 +28,8 @@ from szurubooru.func import snapshots
 
 import szuru_admin_argparse
 
+VERSION = "2.1"
+
 _sys_user = None
 
 def get_system_user():
@@ -643,6 +645,13 @@ def reset_filenames() -> None:
     rename_in_dir("posts/custom-thumbnails/")
 
 
+def show_version() -> None:
+    """
+    Print the current version of szuru-admin.
+    """
+    print(VERSION)
+
+
 def main() -> None:
     command = szuru_admin_argparse.parse_args()
 
@@ -653,6 +662,8 @@ def main() -> None:
             check_audio()
         elif command.subcommand == "reset-filenames":
             reset_filenames()
+        elif command.subcommand == "version":
+            show_version()
         elif command.subcommand == "rename-tags":
             mass_rename_tags(
                 command.pattern,

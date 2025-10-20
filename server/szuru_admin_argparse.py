@@ -33,6 +33,11 @@ def parse_args(parser_class=argparse.ArgumentParser):
         "filenames in case of a lost/changed secret key",
     )
 
+    subparsers.add_parser(
+        "version",
+        help="display the current version of szuru-admin",
+    )
+
     rename_tags_parser = subparsers.add_parser(
         'rename-tags',
         help="Rename tags with regular expressions.",
