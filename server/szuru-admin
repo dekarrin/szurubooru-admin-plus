@@ -263,6 +263,9 @@ def mass_rename_tags(old: str, new: str, preserve: bool, category: str, verbose:
         else:
             raise errors.ValidationError("Unknown action type: %s" % action_type)
 
+    if preserve:
+        print("All tags will preserve their old names as aliases")
+
     if not apply:
         print("No changes applied; if above looks correct, re-run with --apply")
     else:
