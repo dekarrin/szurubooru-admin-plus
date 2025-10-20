@@ -1,15 +1,16 @@
 #!/bin/bash
 
 # Runs the szuru-admin script with the provided arguments through
-# docker-compose. Make sure to run this from the root of the szurubooru project
-# with a valid docker-compose.yml file setup.
+# docker-compose. Supports execution from any working directory.
+
+BOORU_DIR="$(dirname "$0")"
 
 # ...but first, see if we can find a python to run
 if command -v python3 >/dev/null 2>&1
 then
     help_exit_code=134
 
-    SZURU_PREPARSE_HELP_STATUS="$help_exit_code" python3 "$(dirname "$0")"/admin/szuru_admin_argparse.py "$@"
+    SZURU_PREPARSE_HELP_STATUS="$help_exit_code" python3 "$BOORU_DIR/admin/szuru_admin_argparse.py" "$@"
     pre_run_status="$?"
 
     if [ "$pre_run_status" -ne 0 ]
@@ -22,4 +23,7 @@ then
     fi
 fi
 
-docker-compose run --rm server ./szuru-admin "$@"
+docker-compose --project-directory "$BOORU_DIR" \
+  -f "$BOORU_DIR/docker-compose.yml" \
+  run --rm server ./szuru-admin "$@"
+
