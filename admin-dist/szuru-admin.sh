@@ -22,4 +22,5 @@ then
     fi
 fi
 
+cd "$(dirname "$0")"
 docker-compose run --rm server ./szuru-admin "$@"
