@@ -9,15 +9,19 @@ BOORU_DIR="$(dirname "$0")"
 if command -v python3 >/dev/null 2>&1
 then
     help_exit_code=134
+    version_exit_code=135
 
-    SZURU_PREPARSE_HELP_STATUS="$help_exit_code" python3 "$BOORU_DIR/admin/szuru_admin_argparse.py" "$@"
+    SZURU_PREPARSE_HELP_STATUS="$help_exit_code" \
+    SZURU_PREPARSE_VERSION_STATUS="$version_exit_code" \
+    python3 "$BOORU_DIR/admin/szuru_admin_argparse.py" "$@"
     pre_run_status="$?"
 
     if [ "$pre_run_status" -ne 0 ]
     then
-        # if it's the special exit code for printing help, exit with 0 as this
+        # if it's the special exit code for printing help or version, exit with 0 as this
         # is success.
         [ "$pre_run_status" -ne "$help_exit_code" ] || exit 0
+        [ "$pre_run_status" -ne "$version_exit_code" ] || exit 0
 
         exit "$pre_run_status"
     fi
