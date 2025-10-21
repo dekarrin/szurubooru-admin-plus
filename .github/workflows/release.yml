@@ -36,26 +36,33 @@ jobs:
           echo "Updated version to: $VERSION"
           cat server/szuru_admin_version.py
 
-          # Commit the changes
-          git add server/szuru_admin_version.py
-          git commit -m "Update version to $VERSION"
-
-          # Push to default branch
-          git push origin ${{ github.event.repository.default_branch }}
-
-          # Move the tag to point to the new commit
-          # Preserve annotation if tag is annotated
-          TAG_NAME="${{ github.ref_name }}"
-          if git cat-file -t "$TAG_NAME" | grep -q "^tag$"; then
-            # Tag is annotated, preserve the annotation
-            TAG_MESSAGE=$(git tag -l --format='%(contents)' "$TAG_NAME")
-            git tag -d "$TAG_NAME"
-            git tag -a "$TAG_NAME" -m "$TAG_MESSAGE"
+          # Check if the file actually changed
+          if git diff --quiet server/szuru_admin_version.py; then
+            echo "Version is already set to $VERSION, no changes needed"
           else
-            # Tag is lightweight, just move it
-            git tag -f "$TAG_NAME"
+            echo "Version file changed, committing and updating tag"
+
+            # Commit the changes
+            git add server/szuru_admin_version.py
+            git commit -m "Update version to $VERSION"
+
+            # Push to default branch
+            git push origin ${{ github.event.repository.default_branch }}
+
+            # Move the tag to point to the new commit
+            # Preserve annotation if tag is annotated
+            TAG_NAME="${{ github.ref_name }}"
+            if git cat-file -t "$TAG_NAME" | grep -q "^tag$"; then
+              # Tag is annotated, preserve the annotation
+              TAG_MESSAGE=$(git tag -l --format='%(contents)' "$TAG_NAME")
+              git tag -d "$TAG_NAME"
+              git tag -a "$TAG_NAME" -m "$TAG_MESSAGE"
+            else
+              # Tag is lightweight, just move it
+              git tag -f "$TAG_NAME"
+            fi
+            git push -f origin ${{ github.ref_name }}
           fi
-          git push -f origin ${{ github.ref_name }}
       - name: Create Tarball
         run: ./make-dist.sh ${{ github.ref_name }} | tee /dev/stdout > TARBALL_NAME
       # Since this is all within the same job, could just load the tarball name
