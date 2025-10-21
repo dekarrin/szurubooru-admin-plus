@@ -137,3 +137,4 @@ copy_new_or_updated "admin-dist/fix-exif-rotations.sh" "scripts/fix-exif-rotatio
 # Copy admin scripts to the admin directory
 copy_new_or_updated "admin-dist/szuru-admin" "server/szuru-admin" "admin/szuru-admin"
 copy_new_or_updated "admin-dist/szuru_admin_argparse.py" "server/szuru_admin_argparse.py" "admin/szuru_admin_argparse.py"
+copy_new_or_updated "admin-dist/szuru_admin_version.py" "server/szuru_admin_version.py" "admin/szuru_admin_version.py"

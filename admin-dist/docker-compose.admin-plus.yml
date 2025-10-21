@@ -26,6 +26,7 @@ services:
       - "./server/config.yaml:/opt/app/config.yaml"
       - "./admin/szuru-admin:/opt/app/szuru-admin"
       - "./admin/szuru_admin_argparse.py:/opt/app/szuru_admin_argparse.py"
+      - "./admin/szuru_admin_version.py:/opt/app/szuru_admin_version.py"
 
   client:
     image: szurubooru/client:2.5

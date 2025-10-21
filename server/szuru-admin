@@ -27,8 +27,7 @@ from szurubooru.func import tags as tagfuncs
 from szurubooru.func import snapshots
 
 import szuru_admin_argparse
-
-VERSION = "2.1"
+from szuru_admin_version import VERSION
 
 _sys_user = None
 

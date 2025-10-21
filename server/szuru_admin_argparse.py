@@ -2,7 +2,7 @@ import argparse
 import sys
 import os
 
-VERSION = "2.1"
+from szuru_admin_version import VERSION
 
 def parse_args(parser_class=argparse.ArgumentParser):
     parser_top = parser_class(
