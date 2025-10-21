@@ -14,7 +14,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Update Version
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.repository.default_branch }}
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "github-actions[bot]@users.noreply.github.com"
+      - name: Update Version and Commit
         run: |
           # Extract version from tag (remove 'v' prefix if present)
           VERSION="${{ github.ref_name }}"
@@ -27,6 +35,17 @@ jobs:
           # Show what was updated
           echo "Updated version to: $VERSION"
           cat server/szuru_admin_version.py
+
+          # Commit the changes
+          git add server/szuru_admin_version.py
+          git commit -m "Update version to $VERSION"
+
+          # Push to default branch
+          git push origin ${{ github.event.repository.default_branch }}
+
+          # Move the tag to point to the new commit
+          git tag -f ${{ github.ref_name }}
+          git push -f origin ${{ github.ref_name }}
       - name: Create Tarball
         run: ./make-dist.sh ${{ github.ref_name }} | tee /dev/stdout > TARBALL_NAME
       # Since this is all within the same job, could just load the tarball name
