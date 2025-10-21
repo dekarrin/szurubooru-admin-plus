@@ -6,3 +6,6 @@
 
 szuru-admin-plus-*
 *.tar.gz
+
+# Temporary version files created during install
+.szuru_admin_version_temp_*.py

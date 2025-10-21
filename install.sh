@@ -137,30 +137,33 @@ copy_new_or_updated "admin-dist/fix-exif-rotations.sh" "scripts/fix-exif-rotatio
 # Copy admin scripts to the admin directory
 copy_new_or_updated "admin-dist/szuru-admin" "server/szuru-admin" "admin/szuru-admin"
 copy_new_or_updated "admin-dist/szuru_admin_argparse.py" "server/szuru_admin_argparse.py" "admin/szuru_admin_argparse.py"
-copy_new_or_updated "admin-dist/szuru_admin_version.py" "server/szuru_admin_version.py" "admin/szuru_admin_version.py"
 
-# If we installed from repo (not admin-dist), append the git commit SHA to the version string
+# For version file, if installing from repo, create a temporary version with commit hash
 if [ -f "$SCRIPT_DIR/server/szuru_admin_version.py" ] && [ -d "$SCRIPT_DIR/.git" ]
 then
     # Get the git commit hash
     git_commit="$(cd "$SCRIPT_DIR" && git rev-parse --short HEAD 2>/dev/null || echo '')"
     if [ -n "$git_commit" ]
     then
-        # Update the version string in the installed file
-        version_file="$INSTALL_DIR/admin/szuru_admin_version.py"
-        if [ -f "$version_file" ]
-        then
-            # Check if the version string already has the current commit hash
-            if ! grep -q "VERSION = \".*+$git_commit\"" "$version_file"
-            then
-                # Replace any existing commit hash or append if none exists
-                # This modifies the installed file, not the source, so checksums remain valid
-                sed -i.bak -E 's/^(VERSION = "[^"+]+)(\+[0-9a-zA-Z]+)?"$/\1+'"$git_commit"'"/' "$version_file"
-                rm -f "$version_file.bak"
-                echo "Updated version string with commit hash: $git_commit" >&2
-            else
-                echo "Version string already includes commit hash: $git_commit" >&2
-            fi
-        fi
+        # Create a temporary version file with the commit hash appended
+        temp_version_file="$SCRIPT_DIR/.szuru_admin_version_temp_$$.py"
+        cp "$SCRIPT_DIR/server/szuru_admin_version.py" "$temp_version_file"
+        
+        # Replace any existing commit hash or append if none exists
+        sed -i.bak -E 's/^(VERSION = "[^"+]+)(\+[0-9a-zA-Z]+)?"$/\1+'"$git_commit"'"/' "$temp_version_file"
+        rm -f "$temp_version_file.bak"
+        
+        # Use the temp file as the source for copying (pass same path twice since it's absolute)
+        temp_rel_path=".szuru_admin_version_temp_$$.py"
+        copy_new_or_updated "$temp_rel_path" "$temp_rel_path" "admin/szuru_admin_version.py"
+        
+        # Clean up the temporary file
+        rm -f "$temp_version_file"
+    else
+        # No git commit available, copy normally
+        copy_new_or_updated "admin-dist/szuru_admin_version.py" "server/szuru_admin_version.py" "admin/szuru_admin_version.py"
     fi
+else
+    # Not installing from repo, copy normally
+    copy_new_or_updated "admin-dist/szuru_admin_version.py" "server/szuru_admin_version.py" "admin/szuru_admin_version.py"
 fi
