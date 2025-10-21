@@ -155,7 +155,7 @@ then
             then
                 # Replace any existing commit hash or append if none exists
                 # This modifies the installed file, not the source, so checksums remain valid
-                sed -i.bak -E 's/^(VERSION = "[^"+]+)(\+[0-9a-f]+)?"$/\1+'"$git_commit"'"/' "$version_file"
+                sed -i.bak -E 's/^(VERSION = "[^"+]+)(\+[0-9a-zA-Z]+)?"$/\1+'"$git_commit"'"/' "$version_file"
                 rm -f "$version_file.bak"
                 echo "Updated version string with commit hash: $git_commit" >&2
             else
