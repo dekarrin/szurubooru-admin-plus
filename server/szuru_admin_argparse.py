@@ -2,6 +2,8 @@ import argparse
 import sys
 import os
 
+from szuru_admin_version import VERSION
+
 def parse_args(parser_class=argparse.ArgumentParser):
     parser_top = parser_class(
         description="Collection of CLI commands for an administrator to use",
@@ -31,6 +33,11 @@ def parse_args(parser_class=argparse.ArgumentParser):
         "reset-filenames",
         help="reset and rename the content and thumbnail "
         "filenames in case of a lost/changed secret key",
+    )
+
+    subparsers.add_parser(
+        "version",
+        help="display the current version of szuru-admin",
     )
 
     rename_tags_parser = subparsers.add_parser(
@@ -166,6 +173,7 @@ def parse_args(parser_class=argparse.ArgumentParser):
 
 _preparse_help_exit_code = 3
 _preparse_parse_exit_code = 2
+_preparse_version_exit_code = 4
 
 
 class PreParser(argparse.ArgumentParser):
@@ -193,16 +201,23 @@ def main() -> None:
     Depending on the result of parsing, the exit code will be different. If help
     is shown, the value of envvar SZURU_PREPARSE_HELP_STATUS is returned (default 3).
     If a parse error occurs, the value of envvar SZURU_PREPARSE_ERROR_STATUS is
-    returned (default 2).
+    returned (default 2). If the version command is invoked, the version is printed
+    and the value of envvar SZURU_PREPARSE_VERSION_STATUS is returned (default 4).
     """
-    global _preparse_help_exit_code, _preparse_parse_exit_code
+    global _preparse_help_exit_code, _preparse_parse_exit_code, _preparse_version_exit_code
 
     _preparse_help_exit_code = int(os.getenv('SZURU_PREPARSE_HELP_STATUS', str(_preparse_help_exit_code)))
     _preparse_parse_exit_code = int(os.getenv('SZURU_PREPARSE_ERROR_STATUS', str(_preparse_parse_exit_code)))
+    _preparse_version_exit_code = int(os.getenv('SZURU_PREPARSE_VERSION_STATUS', str(_preparse_version_exit_code)))
 
     # explicitly do not try to catch exceptions; if something goes wrong, we
     # want it to be shown exactly as it would in the real program.
-    parse_args(PreParser)
+    command = parse_args(PreParser)
+    
+    # Special case: version command should output the version and exit successfully
+    if command.subcommand == "version":
+        print(VERSION)
+        sys.exit(_preparse_version_exit_code)
 
 
 if __name__ == "__main__":

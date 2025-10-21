@@ -27,6 +27,7 @@ from szurubooru.func import tags as tagfuncs
 from szurubooru.func import snapshots
 
 import szuru_admin_argparse
+from szuru_admin_version import VERSION
 
 _sys_user = None
 
@@ -643,6 +644,13 @@ def reset_filenames() -> None:
     rename_in_dir("posts/custom-thumbnails/")
 
 
+def show_version() -> None:
+    """
+    Print the current version of szuru-admin.
+    """
+    print(VERSION)
+
+
 def main() -> None:
     command = szuru_admin_argparse.parse_args()
 
@@ -653,6 +661,8 @@ def main() -> None:
             check_audio()
         elif command.subcommand == "reset-filenames":
             reset_filenames()
+        elif command.subcommand == "version":
+            show_version()
         elif command.subcommand == "rename-tags":
             mass_rename_tags(
                 command.pattern,
