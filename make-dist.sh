@@ -13,8 +13,10 @@ cd "$(dirname "$0")"
 
 # Read current VERSION from the version file
 file_version=$(grep -E '^VERSION = ' server/szuru_admin_version.py | sed 's/VERSION = "\(.*\)"/\1/')
-tarball_version="$file_version"  # used for filename in tarball and dir
-version="$file_version"          # what calling 'version' in distributed script should return.
+tarball_version="v$file_version"  # used for filename in tarball and dir
+version="$file_version"           # version the dist is for. Either provided by user or read from file
+                                  # If reading from file, and running in a repo, this var will be
+                                  # automatically updated to have the commit hash appended to it.
 
 # Determine if we're in a git repo
 in_git_repo=1
@@ -46,11 +48,11 @@ else
         # In a git repo - append commit SHA
         commit_hash="$(git rev-parse --short HEAD)"
         version="$file_version+$commit_hash"
-        tarball_version="$file_version-$commit_hash"
+        tarball_version="v$file_version-$commit_hash"
     fi
 fi
 
-DIST_DIR="szuru-admin-plus-v$tarball_version"
+DIST_DIR="szuru-admin-plus-$tarball_version"
 
 mkdir -p "$DIST_DIR"
 mkdir -p "$DIST_DIR/admin-dist"
