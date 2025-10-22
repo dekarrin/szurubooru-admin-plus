@@ -9,43 +9,43 @@
 set -euo pipefail
 
 # Read current VERSION from the version file
-CURRENT_VERSION=$(grep -E '^VERSION = ' server/szuru_admin_version.py | sed 's/VERSION = "\(.*\)"/\1/')
+file_version=$(grep -E '^VERSION = ' server/szuru_admin_version.py | sed 's/VERSION = "\(.*\)"/\1/')
 
 # Determine if we're in a git repo
-IN_GIT_REPO=0
+in_git_repo=0
 if git rev-parse --git-dir > /dev/null 2>&1; then
-    IN_GIT_REPO=1
+    in_git_repo=1
 fi
 
 # Process version argument
-if [[ -n "${1:-}" ]]; then
+if [[ $# -gt 0 ]]; then
     # Version was provided via $1
-    PROVIDED_VERSION="$1"
+    version="$1"
     # Strip leading 'v' if present
-    if [[ "${PROVIDED_VERSION:0:1}" == "v" ]]; then
-        PROVIDED_VERSION="${PROVIDED_VERSION:1}"
+    if [[ "${version:0:1}" == "v" ]]; then
+        version="${version:1}"
     fi
     
     # Check if provided version matches the VERSION in the file
-    if [[ "$PROVIDED_VERSION" != "$CURRENT_VERSION" ]]; then
-        echo "Error: Provided version ($PROVIDED_VERSION) does not match VERSION in szuru_admin_version.py ($CURRENT_VERSION)" >&2
+    if [[ "$version" != "$file_version" ]]; then
+        echo "Error: Provided version ($version) does not match VERSION in szuru_admin_version.py ($file_version)" >&2
         exit 1
     fi
     
     # Use the provided version (add v prefix for consistency)
-    VERSION="v$PROVIDED_VERSION"
-    VERSION_FOR_FILE="$CURRENT_VERSION"
+    VERSION="v$version"
+    VERSION_FOR_FILE="$file_version"
 else
     # No version provided
-    if [[ $IN_GIT_REPO -eq 1 ]]; then
+    if [[ $in_git_repo -eq 1 ]]; then
         # In a git repo - append commit SHA
-        GIT_COMMIT="$(git rev-parse --short HEAD)"
-        VERSION="$CURRENT_VERSION+$GIT_COMMIT"
-        VERSION_FOR_FILE="$CURRENT_VERSION+$GIT_COMMIT"
+        git_commit="$(git rev-parse --short HEAD)"
+        VERSION="$file_version+$git_commit"
+        VERSION_FOR_FILE="$file_version+$git_commit"
     else
         # Not in a git repo - use current version as-is
-        VERSION="$CURRENT_VERSION"
-        VERSION_FOR_FILE="$CURRENT_VERSION"
+        VERSION="$file_version"
+        VERSION_FOR_FILE="$file_version"
     fi
 fi
 
@@ -56,15 +56,10 @@ mkdir -p "$DIST_DIR/admin-dist"
 
 cp server/szuru-admin "$DIST_DIR/admin-dist/szuru-admin"
 cp server/szuru_admin_argparse.py "$DIST_DIR/admin-dist/szuru_admin_argparse.py"
+cp server/szuru_admin_version.py "$DIST_DIR/admin-dist/szuru_admin_version.py"
 
-# Create modified version file with VERSION_FOR_FILE
-cat > "$DIST_DIR/admin-dist/szuru_admin_version.py" << EOF
-"""
-Version information for szuru-admin.
-"""
-
-VERSION = "$VERSION_FOR_FILE"
-EOF
+# Edit the version in the dest file
+sed -i "s/^VERSION = .*/VERSION = \"$VERSION_FOR_FILE\"/" "$DIST_DIR/admin-dist/szuru_admin_version.py"
 
 cp scripts/fix-exif-rotations.sh "$DIST_DIR/admin-dist/fix-exif-rotations.sh"
 cp admin-dist/* "$DIST_DIR/admin-dist/"
