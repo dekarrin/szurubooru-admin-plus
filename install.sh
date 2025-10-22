@@ -137,4 +137,51 @@ copy_new_or_updated "admin-dist/fix-exif-rotations.sh" "scripts/fix-exif-rotatio
 # Copy admin scripts to the admin directory
 copy_new_or_updated "admin-dist/szuru-admin" "server/szuru-admin" "admin/szuru-admin"
 copy_new_or_updated "admin-dist/szuru_admin_argparse.py" "server/szuru_admin_argparse.py" "admin/szuru_admin_argparse.py"
-copy_new_or_updated "admin-dist/szuru_admin_version.py" "server/szuru_admin_version.py" "admin/szuru_admin_version.py"
+
+# Handle version file specially - append commit hash if installing from repo
+version_dist_path="admin-dist/szuru_admin_version.py"
+version_repo_path="server/szuru_admin_version.py"
+version_dest_path="admin/szuru_admin_version.py"
+
+# Check if we're installing from repo (not dist)
+if [ ! -f "$SCRIPT_DIR/$version_dist_path" ] && [ -f "$SCRIPT_DIR/$version_repo_path" ]; then
+    # Installing from repo - check if we need to append commit hash
+    version_file="$SCRIPT_DIR/$version_repo_path"
+    
+    # Get current commit SHA1
+    if [ -d "$SCRIPT_DIR/.git" ]; then
+        commit_sha=$(cd "$SCRIPT_DIR" && git rev-parse HEAD 2>/dev/null | head -c 7)
+        
+        if [ -n "$commit_sha" ]; then
+            # Extract current VERSION value
+            current_version=$(grep -E '^VERSION = ' "$version_file" | sed 's/VERSION = "\(.*\)"/\1/')
+            
+            # Check if VERSION already ends with this commit SHA
+            if [[ ! "$current_version" =~ \+${commit_sha}$ ]]; then
+                # Need to append commit hash
+                echo "Appending commit hash $commit_sha to version string..." >&2
+                
+                # Modify the file in place
+                sed -i "s/^VERSION = \"\(.*\)\"/VERSION = \"\1+$commit_sha\"/" "$version_file"
+                
+                # Copy the modified version
+                copy_new_or_updated "$version_dist_path" "$version_repo_path" "$version_dest_path"
+                
+                # Restore original file using git
+                (cd "$SCRIPT_DIR" && git checkout HEAD -- "$version_repo_path" 2>/dev/null)
+            else
+                echo "Version already includes commit hash $commit_sha; not modifying." >&2
+                copy_new_or_updated "$version_dist_path" "$version_repo_path" "$version_dest_path"
+            fi
+        else
+            # Couldn't get commit SHA, proceed normally
+            copy_new_or_updated "$version_dist_path" "$version_repo_path" "$version_dest_path"
+        fi
+    else
+        # Not a git repo, proceed normally
+        copy_new_or_updated "$version_dist_path" "$version_repo_path" "$version_dest_path"
+    fi
+else
+    # Installing from dist or file doesn't exist, proceed normally
+    copy_new_or_updated "$version_dist_path" "$version_repo_path" "$version_dest_path"
+fi
