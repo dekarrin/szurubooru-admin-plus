@@ -12,7 +12,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 # Read current VERSION from the version file
-file_version=$(grep -E '^VERSION = ' server/szuru_admin_version.py | sed 's/VERSION = "\(.*\)"/\1/')
+file_version=$(grep -E '^VERSION *= *' server/szuru_admin_version.py | sed 's/VERSION *= *"\(.*\)"/\1/')
 tarball_version="v$file_version"  # used for filename in tarball and dir
 version="$file_version"           # version the dist is for. Either provided by user or read from file
                                   # If reading from file, and running in a repo, this var will be
@@ -67,7 +67,7 @@ cp install.sh README.md LICENSE.md "$DIST_DIR/"
 # Set version in the distributed program, if it doesnt match current
 if [ "$version" != "$file_version" ]
 then
-    sed -i "s/^VERSION = .*/VERSION = \"$version\"/" "$DIST_DIR/admin-dist/szuru_admin_version.py"
+    sed -i "s/^VERSION *= *.*/VERSION = \"$version\"/" "$DIST_DIR/admin-dist/szuru_admin_version.py"
 fi
 
 # tar it all up
