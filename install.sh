@@ -145,7 +145,7 @@ version_dest_path="admin/szuru_admin_version.py"
 have_git=1
 git --version > /dev/null 2>&1 || have_git=
 version_installed=
-if [ ! -f "$SCRIPT_DIR/$version_dist_path" ] && [ -f "$SCRIPT_DIR/$version_repo_path" && -n "$have_git" ]
+if [ ! -f "$SCRIPT_DIR/$version_dist_path" ] && [ -f "$SCRIPT_DIR/$version_repo_path" ] && [ -n "$have_git" ]
 then
     # Installing from repo - check if we need to append commit hash
     version_file="$SCRIPT_DIR/$version_repo_path"
