@@ -161,18 +161,14 @@ if [ ! -f "$SCRIPT_DIR/$version_dist_path" ] && [ -f "$SCRIPT_DIR/$version_repo_
                 # Need to append commit hash
                 echo "Appending commit hash $commit_sha to version string..." >&2
                 
-                # Create temporary modified version
-                sed "s/^VERSION = \"\(.*\)\"/VERSION = \"\1+$commit_sha\"/" "$version_file" > "$version_file.tmp"
-                
-                # Temporarily replace the file
-                mv "$version_file" "$version_file.orig"
-                mv "$version_file.tmp" "$version_file"
+                # Modify the file in place
+                sed -i "s/^VERSION = \"\(.*\)\"/VERSION = \"\1+$commit_sha\"/" "$version_file"
                 
                 # Copy the modified version
                 copy_new_or_updated "$version_dist_path" "$version_repo_path" "$version_dest_path"
                 
-                # Restore original file
-                mv "$version_file.orig" "$version_file"
+                # Restore original file using git
+                (cd "$SCRIPT_DIR" && git checkout HEAD -- "$version_repo_path" 2>/dev/null)
             else
                 echo "Version already includes commit hash $commit_sha; not modifying." >&2
                 copy_new_or_updated "$version_dist_path" "$version_repo_path" "$version_dest_path"
