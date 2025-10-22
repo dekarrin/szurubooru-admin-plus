@@ -142,7 +142,7 @@ version_repo_path="server/szuru_admin_version.py"
 version_dest_path="admin/szuru_admin_version.py"
 
 # Check if we're installing from repo (not dist)
-have_git=
+have_git=1
 git --version > /dev/null 2>&1 || have_git=
 version_installed=
 if [ ! -f "$SCRIPT_DIR/$version_dist_path" ] && [ -f "$SCRIPT_DIR/$version_repo_path" && -n "$have_git" ]
