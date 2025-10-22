@@ -8,17 +8,51 @@
 
 set -euo pipefail
 
-# if version was given, use that; otherwise, use the current git commit hash
-git_commit="$(git rev-parse --short HEAD)"
-VERSION="${1:-.}"
-if [[ "$VERSION" == "." ]]; then
-    VERSION="$git_commit"
-elif [[ "${VERSION:0:1}" != "v" ]]; then
-    VERSION="v$VERSION"
+# make sure we are in the correct working dir
+cd "$(dirname "$0")"
+
+# Read current VERSION from the version file
+file_version=$(grep -E '^VERSION[[:space:]]*=[[:space:]]*' server/szuru_admin_version.py | sed 's/VERSION[[:space:]]*=[[:space:]]*"\(.*\)"/\1/')
+tarball_version="v$file_version"  # used for filename in tarball and dir
+version="$file_version"           # version the dist is for. Either provided by user or read from file
+                                  # If reading from file, and running in a repo, this var will be
+                                  # automatically updated to have the commit hash appended to it.
+
+# Determine if we're in a git repo
+in_git_repo=1
+git rev-parse --git-dir > /dev/null 2>&1 || in_git_repo=
+
+# Process version argument
+if [ $# -gt 0 ]
+then
+    # Version was provided via $1
+    version="$1"
+    # Strip leading 'v' if present
+    if [ "${version:0:1}" = "v" ]; then
+        version="${version:1}"
+    fi
+    
+    # Check if provided version matches the VERSION in the file
+    if [ "$version" != "$file_version" ]
+    then
+        echo "Error: Provided version ($version) does not match VERSION in szuru_admin_version.py ($file_version)" >&2
+        echo "" >&2
+        echo "Refusing to create version distribution for mismatched version;" >&2
+        echo "Update version in szuru_admin_version.py to match $version and try again" >&2
+        exit 1
+    fi
+else
+    # No version provided; if in a git repo, append commit hash
+    if [ -n "$in_git_repo" ]
+    then
+        # In a git repo - append commit SHA
+        commit_hash="$(git rev-parse --short HEAD)"
+        version="$file_version+$commit_hash"
+        tarball_version="v$file_version-$commit_hash"
+    fi
 fi
 
-
-DIST_DIR="szuru-admin-plus-$VERSION"
+DIST_DIR="szuru-admin-plus-$tarball_version"
 
 mkdir -p "$DIST_DIR"
 mkdir -p "$DIST_DIR/admin-dist"
@@ -30,9 +64,15 @@ cp scripts/fix-exif-rotations.sh "$DIST_DIR/admin-dist/fix-exif-rotations.sh"
 cp admin-dist/* "$DIST_DIR/admin-dist/"
 cp install.sh README.md LICENSE.md "$DIST_DIR/"
 
+# Set version in the distributed program, if it doesn't match current
+if [ "$version" != "$file_version" ]
+then
+    sed -i "s/^VERSION[[:space:]]*=[[:space:]]*.*/VERSION = \"$version\"/" "$DIST_DIR/admin-dist/szuru_admin_version.py"
+fi
+
 # tar it all up
-tar -czf "szuru-admin-plus-$VERSION.tar.gz" "$DIST_DIR"
+tar -czf "szuru-admin-plus-$tarball_version.tar.gz" "$DIST_DIR"
 
 # clean up
 rm -rf "$DIST_DIR"
-echo "szuru-admin-plus-$VERSION.tar.gz"
+echo "szuru-admin-plus-$tarball_version.tar.gz"
