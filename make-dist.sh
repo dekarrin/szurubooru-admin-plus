@@ -64,7 +64,7 @@ cp scripts/fix-exif-rotations.sh "$DIST_DIR/admin-dist/fix-exif-rotations.sh"
 cp admin-dist/* "$DIST_DIR/admin-dist/"
 cp install.sh README.md LICENSE.md "$DIST_DIR/"
 
-# Set version in the distributed program, if it doesnt match current
+# Set version in the distributed program, if it doesn't match current
 if [ "$version" != "$file_version" ]
 then
     sed -i "s/^VERSION[[:space:]]*=[[:space:]]*.*/VERSION = \"$version\"/" "$DIST_DIR/admin-dist/szuru_admin_version.py"
