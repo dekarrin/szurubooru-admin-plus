@@ -63,7 +63,7 @@ cp admin-dist/* "$DIST_DIR/admin-dist/"
 cp install.sh README.md LICENSE.md "$DIST_DIR/"
 
 # Set version in the distributed program, if it doesnt match current
-if [ "$version" -ne "$file_version" ]
+if [ "$version" != "$file_version" ]
 then
     sed -i "s/^VERSION = .*/VERSION = \"$version\"/" "$DIST_DIR/admin-dist/szuru_admin_version.py"
 fi
