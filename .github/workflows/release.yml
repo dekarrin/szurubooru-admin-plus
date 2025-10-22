@@ -81,16 +81,22 @@ jobs:
             gh release delete ${{ github.ref_name }} --yes
 
             # Recreate the release with the updated tag
-            RELEASE_ARGS="--title \"$RELEASE_NAME\" --notes \"$RELEASE_BODY\""
+            # Write the release body to a temporary file to safely handle special characters
+            NOTES_FILE=$(mktemp)
+            echo "$RELEASE_BODY" > "$NOTES_FILE"
+
+            # Build the gh release create command with safe argument passing
+            CREATE_ARGS=(--title "$RELEASE_NAME" --notes-file "$NOTES_FILE")
             if [ "$IS_DRAFT" = "true" ]; then
-              RELEASE_ARGS="$RELEASE_ARGS --draft"
+              CREATE_ARGS+=("--draft")
             fi
             if [ "$IS_PRERELEASE" = "true" ]; then
-              RELEASE_ARGS="$RELEASE_ARGS --prerelease"
+              CREATE_ARGS+=("--prerelease")
             fi
-            
-            eval "gh release create ${{ github.ref_name }} $RELEASE_ARGS"
-            
+
+            gh release create "${{ github.ref_name }}" "${CREATE_ARGS[@]}"
+
+            rm -f "$NOTES_FILE"
             echo "Release recreated with updated tag. Workflow will terminate."
           fi
 
