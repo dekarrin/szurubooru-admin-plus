@@ -23,17 +23,17 @@ in_git_repo=1
 git rev-parse --git-dir > /dev/null 2>&1 || in_git_repo=
 
 # Process version argument
-if [[ $# -gt 0 ]]
+if [ $# -gt 0 ]
 then
     # Version was provided via $1
     version="$1"
     # Strip leading 'v' if present
-    if [[ "${version:0:1}" == "v" ]]; then
+    if [ "${version:0:1}" = "v" ]; then
         version="${version:1}"
     fi
     
     # Check if provided version matches the VERSION in the file
-    if [[ "$version" != "$file_version" ]]
+    if [ "$version" != "$file_version" ]
     then
         echo "Error: Provided version ($version) does not match VERSION in szuru_admin_version.py ($file_version)" >&2
         echo "" >&2
@@ -43,7 +43,7 @@ then
     fi
 else
     # No version provided; if in a git repo, append commit hash
-    if [[ -n "$in_git_repo" ]]
+    if [ -n "$in_git_repo" ]
     then
         # In a git repo - append commit SHA
         commit_hash="$(git rev-parse --short HEAD)"
