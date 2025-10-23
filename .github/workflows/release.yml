@@ -103,6 +103,10 @@ jobs:
             fi
 
             gh release create "${{ github.ref_name }}" "${CREATE_ARGS[@]}"
+            if [ $? -ne 0 ]; then
+              echo "Error: Failed to recreate release"
+              exit 1
+            fi
 
             rm -f "$NOTES_FILE"
             echo "Release recreated with updated tag. Workflow will terminate."
