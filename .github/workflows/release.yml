@@ -83,6 +83,10 @@ jobs:
 
             # Delete the existing release
             gh release delete ${{ github.ref_name }} --yes
+            if [ $? -ne 0 ]; then
+              echo "Error: Failed to delete release ${{ github.ref_name }}. Aborting workflow."
+              exit 1
+            fi
 
             # Recreate the release with the updated tag
             # Write the release body to a temporary file to safely handle special characters
