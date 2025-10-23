@@ -9,9 +9,11 @@ permissions:
   contents: write
 
 jobs:
-  tarball:
-    name: Create and Upload Tarball
+  check-version:
+    name: Check and Update Version
     runs-on: ubuntu-latest
+    outputs:
+      version-matched: ${{ steps.check.outputs.version-matched }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,7 +24,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email \
             "github-actions[bot]@users.noreply.github.com"
-      - name: Update Version and Commit
+      - name: Check Version and Update if Needed
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Extract version from tag (remove 'v' prefix if present)
           VERSION="${{ github.ref_name }}"
@@ -39,8 +44,10 @@ jobs:
           # Check if the file actually changed
           if git diff --quiet server/szuru_admin_version.py; then
             echo "Version is already set to $VERSION, no changes needed"
+            echo "version-matched=true" >> $GITHUB_OUTPUT
           else
             echo "Version file changed, committing and updating tag"
+            echo "version-matched=false" >> $GITHUB_OUTPUT
 
             # Commit the changes
             git add server/szuru_admin_version.py
@@ -62,7 +69,59 @@ jobs:
               git tag -f "$TAG_NAME"
             fi
             git push -f origin ${{ github.ref_name }}
+
+            # Get release information to recreate it
+            RELEASE_INFO=$(gh release view ${{ github.ref_name }} --json name,body,isDraft,isPrerelease)
+            if [ -z "$RELEASE_INFO" ]; then
+              echo "Error: Failed to retrieve release information for ${{ github.ref_name }}. Aborting to prevent malformed release."
+              exit 1
+            fi
+            RELEASE_NAME=$(echo "$RELEASE_INFO" | jq -r '.name')
+            RELEASE_BODY=$(echo "$RELEASE_INFO" | jq -r '.body')
+            IS_DRAFT=$(echo "$RELEASE_INFO" | jq -r '.isDraft')
+            IS_PRERELEASE=$(echo "$RELEASE_INFO" | jq -r '.isPrerelease')
+
+            # Delete the existing release
+            gh release delete ${{ github.ref_name }} --yes
+            if [ $? -ne 0 ]; then
+              echo "Error: Failed to delete release ${{ github.ref_name }}. Aborting workflow."
+              exit 1
+            fi
+
+            # Recreate the release with the updated tag
+            # Write the release body to a temporary file to safely handle special characters
+            NOTES_FILE=$(mktemp)
+            echo "$RELEASE_BODY" > "$NOTES_FILE"
+
+            # Build the gh release create command with safe argument passing
+            CREATE_ARGS=(--title "$RELEASE_NAME" --notes-file "$NOTES_FILE")
+            if [ "$IS_DRAFT" = "true" ]; then
+              CREATE_ARGS+=("--draft")
+            fi
+            if [ "$IS_PRERELEASE" = "true" ]; then
+              CREATE_ARGS+=("--prerelease")
+            fi
+
+            gh release create "${{ github.ref_name }}" "${CREATE_ARGS[@]}"
+            if [ $? -ne 0 ]; then
+              echo "Error: Failed to recreate release"
+              exit 1
+            fi
+
+            rm -f "$NOTES_FILE"
+            echo "Release recreated with updated tag. Workflow will terminate."
           fi
+
+  tarball:
+    name: Create and Upload Tarball
+    runs-on: ubuntu-latest
+    needs: check-version
+    if: needs.check-version.outputs.version-matched == 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref_name }}
       - name: Create Tarball
         run: ./make-dist.sh ${{ github.ref_name }} | tee /dev/stdout > TARBALL_NAME
       # Since this is all within the same job, could just load the tarball name
