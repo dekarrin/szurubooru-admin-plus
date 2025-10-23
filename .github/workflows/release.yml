@@ -72,6 +72,10 @@ jobs:
 
             # Get release information to recreate it
             RELEASE_INFO=$(gh release view ${{ github.ref_name }} --json name,body,isDraft,isPrerelease)
+            if [ -z "$RELEASE_INFO" ]; then
+              echo "Error: Failed to retrieve release information for ${{ github.ref_name }}. Aborting to prevent malformed release."
+              exit 1
+            fi
             RELEASE_NAME=$(echo "$RELEASE_INFO" | jq -r '.name')
             RELEASE_BODY=$(echo "$RELEASE_INFO" | jq -r '.body')
             IS_DRAFT=$(echo "$RELEASE_INFO" | jq -r '.isDraft')
