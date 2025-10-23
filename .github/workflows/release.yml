@@ -28,6 +28,7 @@ jobs:
         id: check
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
         run: |
           # Extract version from tag (remove 'v' prefix if present)
           VERSION="${{ github.ref_name }}"
