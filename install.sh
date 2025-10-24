@@ -117,15 +117,13 @@ function copy_new_or_updated() {
             fi
         fi
     else
+        echo "Installing $source_file_name..." >&2
         file_copy_needed=1
     fi
 
     if [ -n "$file_copy_needed" ]
     then
         cp "$source" "$dest"
-        echo "Copied $source_file_name to $dest" >&2
-    else
-        echo "No need to copy $source_file_name; it is already up-to-date." >&2
     fi
 }
 
