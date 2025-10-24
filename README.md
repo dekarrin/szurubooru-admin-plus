@@ -50,6 +50,24 @@ directly on the host to display help messages and argument-parsing errors
 without starting Docker. This pre-run behavior allows users to see help and
 error messages quickly and can be useful for scripting or debugging.
 
+## Versioning
+
+To tag a new release, simply create the release. Automation will then check if
+the version defined in code matches the release; if not, it will update the
+code to set the new version, update the tag to point to the updated code, and
+re-release it.
+
+### Regenerating Release Token
+
+The auto-reversioning process relies on a PAT token defined in the repo
+secrets. This token will eventually expire, and this will cause the re-release
+process to fail; if this occurs, a new PAT needs to be generated and set as
+the value of GH_RELEASE_TOKEN in the repository secrets.
+
+Re-releases will be created as the user who generates the PAT. The PAT is
+ideally a fine-grained token with access only to this repo. The PAT must have
+read/write permissions on Contents endpoints.
+
 ## Attribution and Licensing
 
 This project is derived from the source code of szurubooru v2.5, which is
