@@ -102,7 +102,8 @@ jobs:
               CREATE_ARGS+=("--prerelease")
             fi
 
-            gh release create "${{ github.ref_name }}" "${CREATE_ARGS[@]}"
+            # Use GH_RELEASE_TOKEN to create as a human user, which triggers the workflow
+            GH_TOKEN="${{ secrets.GH_RELEASE_TOKEN }}" gh release create "${{ github.ref_name }}" "${CREATE_ARGS[@]}"
             if [ $? -ne 0 ]; then
               echo "Error: Failed to recreate release"
               exit 1
