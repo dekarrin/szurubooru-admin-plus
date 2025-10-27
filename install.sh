@@ -53,7 +53,6 @@ if grep ':/opt/app/szuru-admin' "$INSTALL_DIR/docker-compose.yml" > /dev/null 2>
 then
     if grep ':/opt/app/szuru_admin_argparse.py' "$INSTALL_DIR/docker-compose.yml" > /dev/null 2>&1
     then
-        echo "docker-compose.yml already has volume mounts for szuru-admin files; not modifying." >&2
         update_docker_compose=
     fi
 fi
@@ -61,29 +60,31 @@ if [ -n "$update_docker_compose" ]
 then
     old_compose="docker-compose.yml.bak-$(date +%Y%m%d%H%M%S)"
     cp "$INSTALL_DIR/docker-compose.yml" "$INSTALL_DIR/$old_compose"
-    echo "Backed up existing docker-compose.yml to $old_compose" >&2
-
     cp "$SCRIPT_DIR/admin-dist/docker-compose.admin-plus.yml" "$INSTALL_DIR/docker-compose.yml"
-    echo "Installed new docker-compose.yml to substitute custom szuru-admin script" >&2
+
+    echo "UPDATED  Installed new docker-compose.yml with required mounts" >&2
+    echo "         (existing docker-compose.yml backed up to $old_compose)" >&2
+else
+    echo "EXISTS   docker-compose.yml already has volume mounts for szuru-admin files; not modifying." >&2
 fi
 
 # Create dirs if needed
 if [ -d "$INSTALL_DIR/admin" ]
 then
-    echo "Directory $INSTALL_DIR/admin already exists; not creating." >&2
+    echo "EXISTS   Directory $INSTALL_DIR/admin already exists; not re-creating." >&2
 else
     mkdir -p "$INSTALL_DIR/admin"
-    echo "Created directory $INSTALL_DIR/admin" >&2
+    echo "CREATED  Created directory $INSTALL_DIR/admin" >&2
 fi
 
 function copy_new_or_updated() {
-    source_dist_rel_path="$1"
-    source_repo_rel_path="$2"
-    dest_install_rel_path="$3"
+    local source_dist_rel_path="$1"
+    local source_repo_rel_path="$2"
+    local dest_install_rel_path="$3"
 
     # Where from? If running directly from the git repo, the module is located in
-    # server/szuru_admin_argparse.py. If running from a distribution package, it is
-    # in admin-dist/szuru_admin_argparse.py. Detect which one is present.
+    # $source_repo_rel_path. If running from a distribution package, it is
+    # in $source_dist_rel_path. Detect which one is present.
     local source=
     if [ -f "$SCRIPT_DIR/$source_dist_rel_path" ]
     then
@@ -95,37 +96,39 @@ function copy_new_or_updated() {
 
     local source_file_name="$(basename "$source")"
 
+    local is_new=
     local file_copy_needed=
     if [ -f "$dest" ]
     then
         # first check if the file is even different at all
         existing_sum="$(checksum "$dest")"
         new_sum="$(checksum "$source")"
-        if [ "$existing_sum" = "$new_sum" ]
+        if [ "$existing_sum" != "$new_sum" ]
         then
-            echo "Existing $source_file_name script already has updated contents." >&2
-        else    
             # use datetime checks to see if the file we have is newer
             local existing_mtime="$(date -r "$dest" '+%s')"
             local new_mtime="$(date -r "$source" '+%s')"
             if [ "$existing_mtime" -lt "$new_mtime" ]
             then
-                echo "Replacing old $source_file_name script with newer version..." >&2
                 file_copy_needed=1
-            else
-                echo "Existing $source_file_name script is newer; not copying." >&2
             fi
         fi
     else
+        is_new=1
         file_copy_needed=1
     fi
 
     if [ -n "$file_copy_needed" ]
     then
         cp "$source" "$dest"
-        echo "Copied $source_file_name to $dest" >&2
+        local action="UPDATED"
+        if [ -n "$is_new" ]
+        then
+            action="CREATED"
+        fi
+        echo "$action  Copied $source_file_name to $dest" >&2
     else
-        echo "No need to copy $source_file_name; it is already up-to-date." >&2
+        echo "EXISTS   No need to copy $source_file_name; it is already up-to-date." >&2
     fi
 }
 
