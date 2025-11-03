@@ -121,8 +121,8 @@ def diff(pid_1: int, pid_2: int, all: bool, verbose: bool) -> None:
             print("(no differences; neither post has any tags)")
             return
 
-    removed_ids = set(tag_lookups[t].id for t in removed)
-    added_ids = set(tag_lookups[t].id for t in added)
+    removed_ids = set(tag_lookups[t].tag_id for t in removed)
+    added_ids = set(tag_lookups[t].tag_id for t in added)
 
     combined = [tag_lookups[tname] for tname in tag_lookups]
     sorted_tags = tagfuncs.sort_tags(combined)
