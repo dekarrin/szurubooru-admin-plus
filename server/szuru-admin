@@ -117,7 +117,7 @@ def diff(pid_1: int, pid_2: int, all: bool, categories: bool, verbose: bool) -> 
     if verbose and len(removed) == 0 and len(added) == 0:
         # short-circuit exit only if we have verbose mode on and nothing is
         # going to be printed by normal means
-        if len(unchanged) > 0 and not all:     
+        if len(unchanged) > 0 and not all:
             print("(no differences; posts have the same tags)")
             return
         elif len(unchanged) == 0 and all:
@@ -149,7 +149,6 @@ def diff(pid_1: int, pid_2: int, all: bool, categories: bool, verbose: bool) -> 
             continue
 
         # show cat name if specified to do so.
-        
         cat_name=''
         if categories:
             cat_name = tag.category.name
