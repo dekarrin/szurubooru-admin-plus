@@ -135,7 +135,7 @@ def diff(pid_1: int, pid_2: int, all: bool, categories: bool, verbose: bool) -> 
         tid = tag.tag_id
 
         # which char is it/do we print?
-        indicator=''
+        indicator = ''
         if tid in removed_ids:
             indicator = '-'
         elif tid in added_ids:
