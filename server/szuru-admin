@@ -150,7 +150,7 @@ def diff(pid_1: int, pid_2: int, all: bool, categories: bool, verbose: bool) -> 
 
         # show cat name if specified to do so.
         
-        cat_name=''
+        cat_name = ''
         if categories:
             cat_name = tag.category.name
             cat_name += ': '
