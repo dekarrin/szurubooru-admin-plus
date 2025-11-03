@@ -7,6 +7,8 @@ Enhances the szurubooru admin tool with additional functionality.
 * Move tags matching regex to new category
 * Tag things as one would with mass tagging, but with automatic application to
   search terms.
+* Resync post contents when it changes on disk
+* Get the diff of the tags between two posts.
 * Script to fix exif rotations.
 
 ## Requirements
