@@ -75,6 +75,87 @@ def resync(ids: List[int], verbose: bool) -> None:
     print("Successfully updated all content")
 
 
+def diff(pid_1: int, pid_2: int, all: bool, categories: bool, verbose: bool) -> None:
+    """
+    Show the difference in tags between two posts.
+    Tags in the first post but not the second are shown with a leading '-', tags
+    in the second but not the first are shown with a leading '+'.
+
+    If all argument is set to true, all tags will be printed, including those
+    that are in both.
+
+    If categories is set to true, the name of each tag's category is shown in
+    each output line.
+
+    All tags are output in booru-defined sort order.
+    """
+    vprint, vseparate = _vprinters(verbose)
+    
+    vprint(f"Fetching post {pid_1}...")
+    post_1 = postfuncs.get_post_by_id(pid_1)
+    vprint(f"Fetching post {pid_2}...")
+    post_2 = postfuncs.get_post_by_id(pid_2)
+    vseparate()
+    
+    # Get tag names from each post
+    tag_lookups = {t.first_name: t for t in post_1.tags}
+    tag_lookups.update({t.first_name: t for t in post_2.tags})
+    
+    tags_1 = set(t.first_name for t in post_1.tags)
+    tags_2 = set(t.first_name for t in post_2.tags)
+    
+    vprint(f"Post {pid_1} tags: {sorted(tags_1)}")
+    vprint(f"Post {pid_2} tags: {sorted(tags_2)}")
+    vseparate()
+    
+    # Calculate differences
+    removed = tags_1 - tags_2
+    added = tags_2 - tags_1
+    unchanged = tags_1.intersection(tags_2)
+
+    if verbose and len(removed) == 0 and len(added) == 0:
+        # short-circuit exit only if we have verbose mode on and nothing is
+        # going to be printed by normal means
+        if len(unchanged) > 0 and not all:
+            print("(no differences; posts have the same tags)")
+            return
+        elif len(unchanged) == 0 and all:
+            print("(no differences; neither post has any tags)")
+            return
+
+    removed_ids = set(tag_lookups[t].tag_id for t in removed)
+    added_ids = set(tag_lookups[t].tag_id for t in added)
+
+    combined = [tag_lookups[tname] for tname in tag_lookups]
+    sorted_tags = tagfuncs.sort_tags(combined)
+    
+    # Output removed tags (with - prefix)
+    for tag in sorted_tags:
+        tid = tag.tag_id
+
+        # which char is it/do we print?
+        indicator = ''
+        if tid in removed_ids:
+            indicator = '-'
+        elif tid in added_ids:
+            indicator = '+'
+        elif all:
+            indicator = ' '
+
+        # if indicator was not set, this tag did not change and all is not
+        # specified. do not output it
+        if indicator == '':
+            continue
+
+        # show cat name if specified to do so.
+        cat_name = ''
+        if categories:
+            cat_name = tag.category.name
+            cat_name += ': '
+
+        print(f'{indicator}{cat_name}{tag.first_name}')
+
+
 def mass_rename_tags(old: str, new: str, preserve: bool, category: str, verbose: bool, apply: bool) -> None:
     """
     Rename all tags matching the old pattern to the new pattern. Uses regular
@@ -691,6 +772,14 @@ def main() -> None:
                 command.category,
                 command.verbose,
                 command.apply,
+            )
+        elif command.subcommand == 'diff':
+            diff(
+                command.post_1,
+                command.post_2,
+                command.all,
+                command.categories,
+                command.verbose,
             )
         else:
             raise errors.ValidationError("Unknown subcommand: %s" % command.subcommand)

@@ -168,6 +168,39 @@ def parse_args(parser_class=argparse.ArgumentParser):
         help='Enable verbose output',
     )
 
+    diff_parser = subparsers.add_parser(
+        'diff',
+        help="Show the difference in tags between two posts.",
+    )
+    diff_parser.add_argument(
+        "post_1",
+        type=int,
+        help="The ID of the first post to compare."
+    )
+    diff_parser.add_argument(
+        "post_2",
+        type=int,
+        help="The ID of the second post to compare."
+    )
+    diff_parser.add_argument(
+        '--all',
+        '-a',
+        action='store_true',
+        help='Show all tags in output, not just changed.',
+    )
+    diff_parser.add_argument(
+        '--categories',
+        '-c',
+        action='store_true',
+        help='Prepend each tag in output list with the name of the category it is in',
+    )
+    diff_parser.add_argument(
+        '--verbose',
+        '-v',
+        action='store_true',
+        help='Enable verbose output',
+    )
+
     return parser_top.parse_args()
 
 
