@@ -53,7 +53,10 @@ if grep ':/opt/app/szuru-admin' "$INSTALL_DIR/docker-compose.yml" > /dev/null 2>
 then
     if grep ':/opt/app/szuru_admin_argparse.py' "$INSTALL_DIR/docker-compose.yml" > /dev/null 2>&1
     then
-        update_docker_compose=
+        if grep ':/opt/app/szuru_admin_version.py' "$INSTALL_DIR/docker-compose.yml" > /dev/null 2>&1
+        then
+            update_docker_compose=
+        fi
     fi
 fi
 if [ -n "$update_docker_compose" ]
