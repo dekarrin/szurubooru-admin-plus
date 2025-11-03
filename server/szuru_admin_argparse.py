@@ -173,14 +173,20 @@ def parse_args(parser_class=argparse.ArgumentParser):
         help="Show the difference in tags between two posts.",
     )
     diff_parser.add_argument(
-        "post_id_1",
+        "post_1",
         type=int,
         help="The ID of the first post to compare."
     )
     diff_parser.add_argument(
-        "post_id_2",
+        "post_2",
         type=int,
         help="The ID of the second post to compare."
+    )
+    diff_parser.add_argument(
+        '--all',
+        '-a',
+        action='store_true',
+        help='Show all tags in output, not just changed.',
     )
     diff_parser.add_argument(
         '--verbose',
