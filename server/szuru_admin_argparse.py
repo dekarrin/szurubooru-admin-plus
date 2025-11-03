@@ -66,7 +66,7 @@ def parse_args(parser_class=argparse.ArgumentParser):
     )
     rename_tags_parser.add_argument(
         "--apply",
-        "-a",
+        "-A",
         action="store_true",
         help="Actually apply the changes. If not specified, only a simulation is run and no changes are made.",
     )
@@ -96,7 +96,7 @@ def parse_args(parser_class=argparse.ArgumentParser):
     )
     move_tags_parser.add_argument(
         "--apply",
-        "-a",
+        "-A",
         action="store_true",
         help="Actually apply the changes. If not specified, only a simulation is run and no changes are made.",
     )
@@ -157,7 +157,7 @@ def parse_args(parser_class=argparse.ArgumentParser):
     )
     tag_parser.add_argument(
         '--apply',
-        '-a',
+        '-A',
         action='store_true',
         help="Actually apply the changes. If not specified, only a simulation is run and no changes are made.",
     )
