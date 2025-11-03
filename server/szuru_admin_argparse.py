@@ -189,6 +189,12 @@ def parse_args(parser_class=argparse.ArgumentParser):
         help='Show all tags in output, not just changed.',
     )
     diff_parser.add_argument(
+        '--categories',
+        '-c',
+        action='store_true',
+        help='Prepend each tag in output list with the name of the category it is in',
+    )
+    diff_parser.add_argument(
         '--verbose',
         '-v',
         action='store_true',
