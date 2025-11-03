@@ -75,6 +75,40 @@ def resync(ids: List[int], verbose: bool) -> None:
     print("Successfully updated all content")
 
 
+def diff(post_id_1: int, post_id_2: int, verbose: bool) -> None:
+    """
+    Show the difference in tags between two posts.
+    Tags in post_id_2 but not in post_id_1 are shown with a leading '+ '.
+    Tags in post_id_1 but not in post_id_2 are shown with a leading '- '.
+    """
+    vprint, vseparate = _vprinters(verbose)
+    
+    vprint(f"Fetching post {post_id_1}...")
+    post1 = postfuncs.get_post_by_id(post_id_1)
+    vprint(f"Fetching post {post_id_2}...")
+    post2 = postfuncs.get_post_by_id(post_id_2)
+    
+    # Get tag names from each post
+    tags1 = set(tag.first_name for tag in post1.tags)
+    tags2 = set(tag.first_name for tag in post2.tags)
+    
+    vprint(f"Post {post_id_1} tags: {sorted(tags1)}")
+    vprint(f"Post {post_id_2} tags: {sorted(tags2)}")
+    vseparate()
+    
+    # Calculate differences
+    removed_tags = tags1 - tags2  # Tags in post1 but not in post2
+    added_tags = tags2 - tags1     # Tags in post2 but not in post1
+    
+    # Output removed tags (with - prefix)
+    for tag in sorted(removed_tags):
+        print(f"- {tag}")
+    
+    # Output added tags (with + prefix)
+    for tag in sorted(added_tags):
+        print(f"+ {tag}")
+
+
 def mass_rename_tags(old: str, new: str, preserve: bool, category: str, verbose: bool, apply: bool) -> None:
     """
     Rename all tags matching the old pattern to the new pattern. Uses regular
@@ -692,6 +726,8 @@ def main() -> None:
                 command.verbose,
                 command.apply,
             )
+        elif command.subcommand == 'diff':
+            diff(command.post_id_1, command.post_id_2, command.verbose)
         else:
             raise errors.ValidationError("Unknown subcommand: %s" % command.subcommand)
     except errors.BaseError as e:
