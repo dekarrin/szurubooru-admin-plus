@@ -101,7 +101,6 @@ def diff(pid_1: int, pid_2: int, all: bool, categories: bool, verbose: bool) -> 
     tag_lookups = {t.first_name: t for t in post_1.tags}
     tag_lookups.update({t.first_name: t for t in post_2.tags})
     
-
     tags_1 = set(t.first_name for t in post_1.tags)
     tags_2 = set(t.first_name for t in post_2.tags)
     
@@ -135,7 +134,7 @@ def diff(pid_1: int, pid_2: int, all: bool, categories: bool, verbose: bool) -> 
         tid = tag.tag_id
 
         # which char is it/do we print?
-        indicator=''
+        indicator = ''
         if tid in removed_ids:
             indicator = '-'
         elif tid in added_ids:
@@ -149,7 +148,7 @@ def diff(pid_1: int, pid_2: int, all: bool, categories: bool, verbose: bool) -> 
             continue
 
         # show cat name if specified to do so.
-        cat_name=''
+        cat_name = ''
         if categories:
             cat_name = tag.category.name
             cat_name += ': '
