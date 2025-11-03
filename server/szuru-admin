@@ -101,7 +101,6 @@ def diff(pid_1: int, pid_2: int, all: bool, categories: bool, verbose: bool) -> 
     tag_lookups = {t.first_name: t for t in post_1.tags}
     tag_lookups.update({t.first_name: t for t in post_2.tags})
     
-
     tags_1 = set(t.first_name for t in post_1.tags)
     tags_2 = set(t.first_name for t in post_2.tags)
     
